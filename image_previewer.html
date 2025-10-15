@@ -875,8 +875,11 @@
                 // 根据比例计算高度
                 height = Math.floor(width / ratio);
             } else {
-                // 如果没有比例限制，使用输入框的值
-                height = parseInt(document.getElementById('heightInput').value);
+                // 自定义比例时，根据输入框的宽高比计算高度
+                const inputWidth = parseInt(document.getElementById('widthInput').value);
+                const inputHeight = parseInt(document.getElementById('heightInput').value);
+                const inputRatio = inputWidth / inputHeight;
+                height = Math.floor(width / inputRatio);
             }
 
             // 默认放在图片顶部，宽度与图片完全对齐
@@ -908,8 +911,11 @@
                 // 根据比例计算高度
                 height = Math.floor(width / ratio);
             } else {
-                // 如果没有比例限制，使用输入框的值
-                height = parseInt(document.getElementById('heightInput').value);
+                // 自定义比例时，根据输入框的宽高比计算高度
+                const inputWidth = parseInt(document.getElementById('widthInput').value);
+                const inputHeight = parseInt(document.getElementById('heightInput').value);
+                const inputRatio = inputWidth / inputHeight;
+                height = Math.floor(width / inputRatio);
             }
 
             // 宽度与图片完全对齐，Y坐标跟随点击位置
