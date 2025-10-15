@@ -1,5 +1,5 @@
 
-
+Screenshot 2025-10-15 at 16.57.59.png
 
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -164,7 +164,7 @@
             background: #f0f0f0;
             overflow: auto;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
         }
 
@@ -413,13 +413,26 @@
         let dragStart = { x: 0, y: 0 };
         let imagePosition = { x: 0, y: 0 };
         let imageSize = { width: 0, height: 0 };
+        let isResizeLocked = false; // 调整大小是否被锁定
 
         // 初始化
-        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', handleFileSelect);
+            console.log('文件输入事件监听器已绑定');
+        } else {
+            console.error('找不到文件输入元素');
+        }
+        
+        // 添加容器滚动事件监听
+        canvasContainer.addEventListener('scroll', function() {
+            // 防止滚动超出合理范围
+            if (this.scrollTop < 0) this.scrollTop = 0;
+            if (this.scrollLeft < 0) this.scrollLeft = 0;
+        });
         
         // 拖拽上传
         const uploadArea = document.getElementById('uploadArea');
-        const canvasContainer = document.getElementById('canvasContainer');
         
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             canvasContainer.addEventListener(eventName, preventDefaults, false);
@@ -433,35 +446,55 @@
         canvasContainer.addEventListener('drop', handleDrop, false);
 
         function handleDrop(e) {
+            console.log('拖拽文件事件触发');
             const dt = e.dataTransfer;
             const files = dt.files;
+            console.log('拖拽的文件数量:', files.length);
             handleFiles(files);
         }
 
         // 文件选择处理
         function handleFileSelect(e) {
+            console.log('文件选择事件触发');
             const files = e.target.files;
+            console.log('选择的文件数量:', files.length);
+            if (files.length > 0) {
+                console.log('第一个文件名:', files[0].name);
+                console.log('第一个文件类型:', files[0].type);
+            }
             handleFiles(files);
         }
 
         function handleFiles(files) {
-            if (files.length === 0) return;
+            console.log('handleFiles 被调用，文件数量:', files.length);
+            if (files.length === 0) {
+                console.log('没有文件，退出');
+                return;
+            }
 
             if (files.length === 1) {
+                console.log('加载单张图片:', files[0].name);
                 loadImage(files[0]);
             } else {
+                console.log('拼接多张图片，数量:', files.length);
                 // 多张图片拼接
                 concatImages(files);
             }
 
             uploadArea.classList.add('hidden');
+            console.log('隐藏上传区域');
         }
 
         function loadImage(file) {
+            console.log('开始加载图片:', file.name);
             const reader = new FileReader();
+            
             reader.onload = function(e) {
+                console.log('FileReader 读取完成');
                 const img = new Image();
+                
                 img.onload = function() {
+                    console.log('图片加载成功，尺寸:', img.width, 'x', img.height);
                     currentImage = img;
                     splitBoxes = [];
                     // 默认添加一个分割框
@@ -469,9 +502,22 @@
                     showSplitLines = true;
                     fitWindow();
                     updateInfo();
+                    console.log('图片显示完成');
                 };
+                
+                img.onerror = function() {
+                    console.error('图片加载失败');
+                    alert('图片加载失败，请检查文件格式');
+                };
+                
                 img.src = e.target.result;
             };
+            
+            reader.onerror = function() {
+                console.error('文件读取失败');
+                alert('文件读取失败');
+            };
+            
             reader.readAsDataURL(file);
         }
 
@@ -544,6 +590,14 @@
             zoomFactor = Math.min(scaleX, scaleY);
 
             updateDisplay();
+            
+            // 适应窗口后，确保水平居中，垂直滚动到顶部
+            container.scrollTop = 0;
+            if (canvas.width > container.clientWidth) {
+                container.scrollLeft = (canvas.width - container.clientWidth) / 2;
+            } else {
+                container.scrollLeft = 0;
+            }
         }
 
         function updateDisplay() {
@@ -552,8 +606,9 @@
             const displayWidth = currentImage.width * zoomFactor;
             const displayHeight = currentImage.height * zoomFactor;
 
-            canvas.width = displayWidth;
-            canvas.height = displayHeight;
+            // 确保canvas有最小尺寸，避免滚动问题
+            canvas.width = Math.max(displayWidth, 100);
+            canvas.height = Math.max(displayHeight, 100);
 
             imageSize.width = displayWidth;
             imageSize.height = displayHeight;
@@ -570,6 +625,9 @@
             }
 
             updateInfo();
+            
+            // 确保滚动到顶部
+            ensureImageVisible();
         }
 
         function drawSplitBoxes() {
@@ -582,8 +640,14 @@
                 const width = box.width * scaleX;
                 const height = box.height * scaleY;
 
-                // 绘制框
-                ctx.strokeStyle = index === selectedBoxIndex ? '#667eea' : '#CCCCCC';
+                // 绘制框 - 根据状态选择不同颜色
+                if (isResizeLocked && selectedBoxIndex === index) {
+                    ctx.strokeStyle = '#ff6b6b'; // 锁定状态用红色
+                } else if (index === selectedBoxIndex) {
+                    ctx.strokeStyle = '#667eea'; // 选中状态用蓝色
+                } else {
+                    ctx.strokeStyle = '#CCCCCC'; // 默认状态用灰色
+                }
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x, y, width, height);
 
@@ -674,6 +738,23 @@
             }
         }
 
+        // 新增函数：确保图片可见
+        function ensureImageVisible() {
+            const container = canvasContainer;
+            
+            // 水平居中：如果图片宽度超出容器，计算水平居中位置
+            if (canvas.width > container.clientWidth) {
+                const centerX = Math.max(0, (canvas.width - container.clientWidth) / 2);
+                container.scrollLeft = centerX;
+            } else {
+                // 图片宽度不超出容器时，不需要水平滚动
+                container.scrollLeft = 0;
+            }
+            
+            // 垂直方向：滚动到图片顶部，确保能看到图片的最上方
+            container.scrollTop = 0;
+        }
+
         // 画布事件处理
         canvas.addEventListener('mousedown', onCanvasMouseDown);
         canvas.addEventListener('mousemove', onCanvasMouseMove);
@@ -691,13 +772,25 @@
             const scaleX = imageSize.width / currentImage.width;
             const scaleY = imageSize.height / currentImage.height;
 
+            // 如果正在调整大小，点击任意位置锁定大小
+            if (isResizing) {
+                isResizing = false;
+                isResizeLocked = true;
+                resizeHandle = null;
+                console.log('锁定分割框大小');
+                updateDisplay();
+                return;
+            }
+
             // 检查是否点击手柄
             const handleCheck = checkHandleHit(x, y, scaleX, scaleY);
             if (handleCheck) {
                 isResizing = true;
+                isResizeLocked = false; // 开始调整大小时解除锁定
                 resizeHandle = handleCheck.handle;
                 selectedBoxIndex = handleCheck.index;
                 dragStart = { x, y, box: { ...splitBoxes[selectedBoxIndex] } };
+                console.log('开始调整分割框大小');
                 return;
             }
 
@@ -713,8 +806,17 @@
                     isDragging = true;
                     selectedBoxIndex = i;
                     dragStart = { x, y, box: { ...box } };
+                    console.log('开始拖动分割框');
                     return;
                 }
+            }
+
+            // 如果正在拖动，点击任意位置停止拖动
+            if (isDragging) {
+                isDragging = false;
+                console.log('停止拖动分割框');
+                updateDisplay();
+                return;
             }
 
             // 添加新分割框
@@ -761,12 +863,15 @@
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            if (isResizing && selectedBoxIndex !== null) {
-                resizeSplitBox(x, y);
-                updateDisplay();
-            } else if (isDragging && selectedBoxIndex !== null) {
-                moveSplitBox(x, y);
-                updateDisplay();
+            // 只有在未锁定状态下才允许拖动和调整大小
+            if (!isResizeLocked) {
+                if (isResizing && selectedBoxIndex !== null) {
+                    resizeSplitBox(x, y);
+                    updateDisplay();
+                } else if (isDragging && selectedBoxIndex !== null) {
+                    moveSplitBox(x, y);
+                    updateDisplay();
+                }
             }
 
             // 更新光标样式
@@ -807,7 +912,12 @@
                 const boxHeight = box.height * scaleY;
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
-                    canvas.style.cursor = 'move';
+                    // 如果调整大小被锁定，显示锁定光标
+                    if (isResizeLocked) {
+                        canvas.style.cursor = 'not-allowed';
+                    } else {
+                        canvas.style.cursor = 'move';
+                    }
                     return;
                 }
             }
@@ -816,9 +926,13 @@
         }
 
         function onCanvasMouseUp(e) {
-            isDragging = false;
-            isResizing = false;
-            resizeHandle = null;
+            // 只有在实际拖动或调整大小时才重置状态
+            if (isDragging || isResizing) {
+                isDragging = false;
+                isResizing = false;
+                resizeHandle = null;
+                console.log('鼠标松开，停止拖动/调整大小');
+            }
         }
 
         function onCanvasDoubleClick(e) {
@@ -842,6 +956,7 @@
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
                     splitBoxes.splice(i, 1);
                     selectedBoxIndex = null;
+                    isResizeLocked = false; // 重置锁定状态
                     updateDisplay();
                     return;
                 }
@@ -862,6 +977,14 @@
             }
 
             updateDisplay();
+            
+            // 缩放后保持水平居中，垂直方向保持当前滚动位置
+            const container = canvasContainer;
+            if (canvas.width > container.clientWidth) {
+                container.scrollLeft = (canvas.width - container.clientWidth) / 2;
+            } else {
+                container.scrollLeft = 0;
+            }
         }
 
         function addDefaultSplitBox() {
@@ -903,6 +1026,7 @@
 
             splitBoxes.push(defaultBox);
             selectedBoxIndex = 0;
+            isResizeLocked = false; // 新添加的分割框默认未锁定
             console.log('添加默认分割框:', defaultBox);
         }
 
@@ -950,6 +1074,10 @@
             if (!isOverlapping(newBox)) {
                 splitBoxes.push(newBox);
                 selectedBoxIndex = splitBoxes.length - 1;
+                isResizeLocked = false; // 新添加的分割框默认未锁定
+                isDragging = false; // 重置拖动状态
+                isResizing = false; // 重置调整大小状态
+                resizeHandle = null; // 重置手柄状态
                 console.log('成功添加分割框，新数量:', splitBoxes.length);
                 updateDisplay();
             } else {
@@ -1084,18 +1212,43 @@
             if (!currentImage) return;
             zoomFactor = Math.min(zoomFactor * 1.2, maxZoom);
             updateDisplay();
+            
+            // 缩放后保持水平居中
+            const container = canvasContainer;
+            if (canvas.width > container.clientWidth) {
+                container.scrollLeft = (canvas.width - container.clientWidth) / 2;
+            } else {
+                container.scrollLeft = 0;
+            }
         }
 
         function zoomOut() {
             if (!currentImage) return;
             zoomFactor = Math.max(zoomFactor / 1.2, minZoom);
             updateDisplay();
+            
+            // 缩放后保持水平居中
+            const container = canvasContainer;
+            if (canvas.width > container.clientWidth) {
+                container.scrollLeft = (canvas.width - container.clientWidth) / 2;
+            } else {
+                container.scrollLeft = 0;
+            }
         }
 
         function resetZoom() {
             if (!currentImage) return;
             zoomFactor = 1.0;
             updateDisplay();
+            
+            // 重置缩放后保持水平居中，垂直滚动到顶部
+            const container = canvasContainer;
+            container.scrollTop = 0;
+            if (canvas.width > container.clientWidth) {
+                container.scrollLeft = (canvas.width - container.clientWidth) / 2;
+            } else {
+                container.scrollLeft = 0;
+            }
         }
 
         function clearAll() {
@@ -1104,6 +1257,10 @@
                 splitBoxes = [];
                 selectedBoxIndex = null;
                 showSplitLines = false;
+                isResizeLocked = false; // 重置锁定状态
+                isDragging = false;
+                isResizing = false;
+                resizeHandle = null;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 uploadArea.classList.remove('hidden');
                 document.getElementById('infoLabel').textContent = '等待加载图片...';
@@ -1170,6 +1327,33 @@
 
         // 初始化比例选择
         onRatioChange();
+        
+        // 添加全局点击事件监听器，处理点击图片外区域的情况
+        document.addEventListener('click', function(e) {
+            // 如果点击的不是canvas区域
+            if (!canvas.contains(e.target)) {
+                // 如果正在调整大小，则锁定大小
+                if (isResizing) {
+                    isResizing = false;
+                    isResizeLocked = true;
+                    resizeHandle = null;
+                    console.log('点击图片外区域，锁定分割框大小');
+                    updateDisplay();
+                }
+                // 如果正在拖动，则停止拖动
+                else if (isDragging) {
+                    isDragging = false;
+                    console.log('点击图片外区域，停止拖动分割框');
+                    updateDisplay();
+                }
+            }
+        });
+
+        // 添加调试信息
+        console.log('页面加载完成，开始初始化...');
+        console.log('文件输入元素:', document.getElementById('fileInput'));
+        console.log('上传区域元素:', document.getElementById('uploadArea'));
+        console.log('画布容器元素:', document.getElementById('canvasContainer'));
     </script>
 </body>
 </html>
