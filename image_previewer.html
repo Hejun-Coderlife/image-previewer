@@ -461,6 +461,9 @@
                 img.onload = function() {
                     currentImage = img;
                     splitBoxes = [];
+                    // 默认添加一个分割框
+                    addDefaultSplitBox();
+                    showSplitLines = true;
                     fitWindow();
                     updateInfo();
                 };
@@ -511,6 +514,9 @@
                             concatImg.onload = function() {
                                 currentImage = concatImg;
                                 splitBoxes = [];
+                                // 默认添加一个分割框
+                                addDefaultSplitBox();
+                                showSplitLines = true;
                                 fitWindow();
                                 updateInfo();
                             };
@@ -855,6 +861,28 @@
             updateDisplay();
         }
 
+        function addDefaultSplitBox() {
+            if (!currentImage) return;
+            
+            const width = parseInt(document.getElementById('widthInput').value);
+            const height = parseInt(document.getElementById('heightInput').value);
+
+            // 默认放在图片顶部中央
+            const defaultX = Math.max(0, Math.floor((currentImage.width - width) / 2));
+            const defaultY = 0;
+
+            const defaultBox = {
+                x: defaultX,
+                y: defaultY,
+                width: width,
+                height: height
+            };
+
+            splitBoxes.push(defaultBox);
+            selectedBoxIndex = 0;
+            console.log('添加默认分割框:', defaultBox);
+        }
+
         function addSplitBox(x, y) {
             const scaleX = imageSize.width / currentImage.width;
             const scaleY = imageSize.height / currentImage.height;
@@ -1043,6 +1071,8 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 uploadArea.classList.remove('hidden');
                 document.getElementById('infoLabel').textContent = '等待加载图片...';
+                // 重置文件输入
+                document.getElementById('fileInput').value = '';
             }
         }
 
