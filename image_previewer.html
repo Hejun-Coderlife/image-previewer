@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -864,11 +866,21 @@
         function addDefaultSplitBox() {
             if (!currentImage) return;
             
-            const width = parseInt(document.getElementById('widthInput').value);
-            const height = parseInt(document.getElementById('heightInput').value);
+            // 默认分割框宽度与图片宽度100%对齐，高度根据比例计算
+            const width = currentImage.width;
+            const ratio = getCurrentRatio();
+            let height;
+            
+            if (ratio) {
+                // 根据比例计算高度
+                height = Math.floor(width / ratio);
+            } else {
+                // 如果没有比例限制，使用输入框的值
+                height = parseInt(document.getElementById('heightInput').value);
+            }
 
-            // 默认放在图片顶部中央
-            const defaultX = Math.max(0, Math.floor((currentImage.width - width) / 2));
+            // 默认放在图片顶部，宽度与图片完全对齐
+            const defaultX = 0;
             const defaultY = 0;
 
             const defaultBox = {
@@ -887,9 +899,20 @@
             const scaleX = imageSize.width / currentImage.width;
             const scaleY = imageSize.height / currentImage.height;
 
-            const width = parseInt(document.getElementById('widthInput').value);
-            const height = parseInt(document.getElementById('heightInput').value);
+            // 分割框宽度与图片宽度100%对齐，高度根据比例计算
+            const width = currentImage.width;
+            const ratio = getCurrentRatio();
+            let height;
+            
+            if (ratio) {
+                // 根据比例计算高度
+                height = Math.floor(width / ratio);
+            } else {
+                // 如果没有比例限制，使用输入框的值
+                height = parseInt(document.getElementById('heightInput').value);
+            }
 
+            // 宽度与图片完全对齐，Y坐标跟随点击位置
             const originalX = 0;
             const originalY = Math.max(0, Math.min(y / scaleY, currentImage.height - height));
 
