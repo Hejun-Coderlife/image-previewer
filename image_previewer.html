@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片预览器 - 网页版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-info {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .split-params {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .param-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .param-group label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .param-group select,
+        .param-group input {
+            padding: 6px 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .param-group select:focus,
+        .param-group input:focus {
+            border-color: #667eea;
+        }
+
+        .param-group input[type="number"] {
+            width: 80px;
+        }
+
+        .info-label {
+            margin-left: auto;
+            font-size: 13px;
+            color: #666;
+            padding: 8px 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #f0f0f0;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas {
+            display: block;
+            cursor: crosshair;
+            image-rendering: high-quality;
+        }
+
+        .upload-area {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 60px;
+            border: 3px dashed #cbd5e0;
+            border-radius: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .upload-area.hidden {
+            display: none;
+        }
+
+        .upload-area h2 {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .upload-area p {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-size: 13px;
+            color: #4a5568;
+            max-width: 350px;
+        }
+
+        .instructions h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instructions li {
+            margin: 4px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .instructions li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                padding: 15px;
+            }
+
+            .split-params {
+                width: 100%;
+            }
+
+            .info-label {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ 图片预览器</h1>
+            <div style="font-size: 14px; opacity: 0.9;">网页版 v1.0</div>
+        </div>
+
+        <div class="control-panel">
+            <label for="fileInput" class="btn btn-primary">
+                📁 选择图片
+            </label>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+
+            <button class="btn btn-info" onclick="fitWindow()">
+                🔲 适应窗口
+            </button>
+
+            <button class="btn btn-success" onclick="toggleSplitLines()">
+                📏 显示/隐藏分割线
+            </button>
+
+            <button class="btn btn-warning" onclick="executeSplit()">
+                ✂️ 执行分割
+            </button>
+
+            <button class="btn btn-danger" onclick="clearAll()">
+                🗑️ 清空所有
+            </button>
+
+            <div class="split-params">
+                <div class="param-group">
+                    <label>比例:</label>
+                    <select id="ratioSelect" onchange="onRatioChange()">
+                        <option value="1:1">1:1</option>
+                        <option value="4:3">4:3</option>
+                        <option value="16:9">16:9</option>
+                        <option value="3:4">3:4</option>
+                        <option value="9:16">9:16</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                </div>
+
+                <div class="param-group">
+                    <label>宽(px):</label>
+                    <input type="number" id="widthInput" value="1200" min="10" onchange="onSizeChange()">
+                </div>
+
+                <div class="param-group">
+                    <label>高(px):</label>
+                    <input type="number" id="heightInput" value="1200" min="10" onchange="onSizeChange()">
+                </div>
+            </div>
+
+            <div class="info-label" id="infoLabel">
+                等待加载图片...
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="canvas"></canvas>
+                
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📤</div>
+                    <h2>上传图片开始使用</h2>
+                    <p>点击此处或拖拽图片文件到这里</p>
+                    <p style="font-size: 12px; color: #a0aec0;">支持 JPG、PNG、GIF、WebP 等格式</p>
+                </div>
+
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomIn()" title="放大">+</button>
+                    <button class="zoom-btn" onclick="zoomOut()" title="缩小">−</button>
+                    <button class="zoom-btn" onclick="resetZoom()" title="重置">⟲</button>
+                </div>
+
+                <div class="instructions">
+                    <h3>💡 使用说明</h3>
+                    <ul>
+                        <li>单击图片添加分割框</li>
+                        <li>拖动分割框移动位置</li>
+                        <li>拖动角落和边缘调整大小</li>
+                        <li>双击分割框删除</li>
+                        <li>鼠标滚轮缩放图片</li>
+                        <li>设置比例后自动锁定宽高比</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let currentImage = null;
+        let zoomFactor = 1.0;
+        let minZoom = 0.1;
+        let maxZoom = 10.0;
+        let splitBoxes = [];
+        let showSplitLines = false;
+        let selectedBoxIndex = null;
+        let isDragging = false;
+        let isResizing = false;
+        let resizeHandle = null;
+        let dragStart = { x: 0, y: 0 };
+        let imagePosition = { x: 0, y: 0 };
+        let imageSize = { width: 0, height: 0 };
+
+        // 初始化
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        
+        // 拖拽上传
+        const uploadArea = document.getElementById('uploadArea');
+        const canvasContainer = document.getElementById('canvasContainer');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            canvasContainer.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        canvasContainer.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        // 文件选择处理
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+
+            if (files.length === 1) {
+                loadImage(files[0]);
+            } else {
+                // 多张图片拼接
+                concatImages(files);
+            }
+
+            uploadArea.classList.add('hidden');
+        }
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    currentImage = img;
+                    splitBoxes = [];
+                    fitWindow();
+                    updateInfo();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function concatImages(files) {
+            const targetWidth = 1200;
+            let images = [];
+            let loadedCount = 0;
+
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        images[index] = img;
+                        loadedCount++;
+
+                        if (loadedCount === files.length) {
+                            // 所有图片加载完成，开始拼接
+                            let totalHeight = 0;
+                            let resizedImages = [];
+
+                            images.forEach(img => {
+                                const scale = targetWidth / img.width;
+                                const newHeight = Math.floor(img.height * scale);
+                                resizedImages.push({ img, newHeight });
+                                totalHeight += newHeight;
+                            });
+
+                            // 创建大画布
+                            const tempCanvas = document.createElement('canvas');
+                            tempCanvas.width = targetWidth;
+                            tempCanvas.height = totalHeight;
+                            const tempCtx = tempCanvas.getContext('2d');
+
+                            let yOffset = 0;
+                            resizedImages.forEach(({ img, newHeight }) => {
+                                tempCtx.drawImage(img, 0, yOffset, targetWidth, newHeight);
+                                yOffset += newHeight;
+                            });
+
+                            // 将拼接结果作为新图片
+                            const concatImg = new Image();
+                            concatImg.onload = function() {
+                                currentImage = concatImg;
+                                splitBoxes = [];
+                                fitWindow();
+                                updateInfo();
+                            };
+                            concatImg.src = tempCanvas.toDataURL();
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function fitWindow() {
+            if (!currentImage) return;
+
+            const container = canvasContainer;
+            const containerWidth = container.clientWidth - 40;
+            const containerHeight = container.clientHeight - 40;
+
+            const scaleX = containerWidth / currentImage.width;
+            const scaleY = containerHeight / currentImage.height;
+            zoomFactor = Math.min(scaleX, scaleY);
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            if (!currentImage) return;
+
+            const displayWidth = currentImage.width * zoomFactor;
+            const displayHeight = currentImage.height * zoomFactor;
+
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+
+            imageSize.width = displayWidth;
+            imageSize.height = displayHeight;
+
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制图片
+            ctx.drawImage(currentImage, 0, 0, displayWidth, displayHeight);
+
+            // 绘制分割框
+            if (showSplitLines) {
+                drawSplitBoxes();
+            }
+
+            updateInfo();
+        }
+
+        function drawSplitBoxes() {
+            const scaleX = imageSize.width / currentImage.width;
+            const scaleY = imageSize.height / currentImage.height;
+
+            splitBoxes.forEach((box, index) => {
+                const x = box.x * scaleX;
+                const y = box.y * scaleY;
+                const width = box.width * scaleX;
+                const height = box.height * scaleY;
+
+                // 绘制框
+                ctx.strokeStyle = index === selectedBoxIndex ? '#667eea' : '#CCCCCC';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, width, height);
+
+                // 绘制角落手柄
+                const handleSize = 16;
+                const handleColor = '#000000';
+                const handleWidth = 5;
+
+                ctx.strokeStyle = handleColor;
+                ctx.lineWidth = handleWidth;
+                ctx.lineCap = 'square';
+
+                // 左上角
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + handleSize, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + handleSize);
+                ctx.stroke();
+
+                // 右上角
+                ctx.beginPath();
+                ctx.moveTo(x + width, y);
+                ctx.lineTo(x + width - handleSize, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x + width, y);
+                ctx.lineTo(x + width, y + handleSize);
+                ctx.stroke();
+
+                // 左下角
+                ctx.beginPath();
+                ctx.moveTo(x, y + height);
+                ctx.lineTo(x + handleSize, y + height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y + height);
+                ctx.lineTo(x, y + height - handleSize);
+                ctx.stroke();
+
+                // 右下角
+                ctx.beginPath();
+                ctx.moveTo(x + width, y + height);
+                ctx.lineTo(x + width - handleSize, y + height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x + width, y + height);
+                ctx.lineTo(x + width, y + height - handleSize);
+                ctx.stroke();
+
+                // 边缘中点手柄
+                const edgeHandleSize = 16;
+                ctx.lineWidth = handleWidth;
+
+                // 上中
+                ctx.beginPath();
+                ctx.moveTo(x + width / 2 - edgeHandleSize / 2, y);
+                ctx.lineTo(x + width / 2 + edgeHandleSize / 2, y);
+                ctx.stroke();
+
+                // 下中
+                ctx.beginPath();
+                ctx.moveTo(x + width / 2 - edgeHandleSize / 2, y + height);
+                ctx.lineTo(x + width / 2 + edgeHandleSize / 2, y + height);
+                ctx.stroke();
+
+                // 左中
+                ctx.beginPath();
+                ctx.moveTo(x, y + height / 2 - edgeHandleSize / 2);
+                ctx.lineTo(x, y + height / 2 + edgeHandleSize / 2);
+                ctx.stroke();
+
+                // 右中
+                ctx.beginPath();
+                ctx.moveTo(x + width, y + height / 2 - edgeHandleSize / 2);
+                ctx.lineTo(x + width, y + height / 2 + edgeHandleSize / 2);
+                ctx.stroke();
+            });
+        }
+
+        function updateInfo() {
+            const infoLabel = document.getElementById('infoLabel');
+            if (currentImage) {
+                const info = `尺寸: ${currentImage.width}x${currentImage.height} | 缩放: ${zoomFactor.toFixed(2)}x | 分割框数量: ${splitBoxes.length}`;
+                infoLabel.textContent = info;
+            }
+        }
+
+        // 画布事件处理
+        canvas.addEventListener('mousedown', onCanvasMouseDown);
+        canvas.addEventListener('mousemove', onCanvasMouseMove);
+        canvas.addEventListener('mouseup', onCanvasMouseUp);
+        canvas.addEventListener('dblclick', onCanvasDoubleClick);
+        canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
+
+        function onCanvasMouseDown(e) {
+            if (!currentImage || !showSplitLines) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const scaleX = imageSize.width / currentImage.width;
+            const scaleY = imageSize.height / currentImage.height;
+
+            // 检查是否点击手柄
+            const handleCheck = checkHandleHit(x, y, scaleX, scaleY);
+            if (handleCheck) {
+                isResizing = true;
+                resizeHandle = handleCheck.handle;
+                selectedBoxIndex = handleCheck.index;
+                dragStart = { x, y, box: { ...splitBoxes[selectedBoxIndex] } };
+                return;
+            }
+
+            // 检查是否点击分割框
+            for (let i = splitBoxes.length - 1; i >= 0; i--) {
+                const box = splitBoxes[i];
+                const boxX = box.x * scaleX;
+                const boxY = box.y * scaleY;
+                const boxWidth = box.width * scaleX;
+                const boxHeight = box.height * scaleY;
+
+                if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
+                    isDragging = true;
+                    selectedBoxIndex = i;
+                    dragStart = { x, y, box: { ...box } };
+                    return;
+                }
+            }
+
+            // 添加新分割框
+            addSplitBox(x, y);
+        }
+
+        function checkHandleHit(x, y, scaleX, scaleY) {
+            const handleSize = 16;
+
+            for (let i = 0; i < splitBoxes.length; i++) {
+                const box = splitBoxes[i];
+                const boxX = box.x * scaleX;
+                const boxY = box.y * scaleY;
+                const boxWidth = box.width * scaleX;
+                const boxHeight = box.height * scaleY;
+
+                const handles = [
+                    { x: boxX, y: boxY, type: 'nw' },
+                    { x: boxX + boxWidth, y: boxY, type: 'ne' },
+                    { x: boxX, y: boxY + boxHeight, type: 'sw' },
+                    { x: boxX + boxWidth, y: boxY + boxHeight, type: 'se' },
+                    { x: boxX + boxWidth / 2, y: boxY, type: 'n' },
+                    { x: boxX + boxWidth / 2, y: boxY + boxHeight, type: 's' },
+                    { x: boxX, y: boxY + boxHeight / 2, type: 'w' },
+                    { x: boxX + boxWidth, y: boxY + boxHeight / 2, type: 'e' }
+                ];
+
+                for (const handle of handles) {
+                    if (Math.abs(x - handle.x) <= handleSize && Math.abs(y - handle.y) <= handleSize) {
+                        return { handle: handle.type, index: i };
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        function onCanvasMouseMove(e) {
+            if (!currentImage) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (isResizing && selectedBoxIndex !== null) {
+                resizeSplitBox(x, y);
+                updateDisplay();
+            } else if (isDragging && selectedBoxIndex !== null) {
+                moveSplitBox(x, y);
+                updateDisplay();
+            }
+
+            // 更新光标样式
+            updateCursor(x, y);
+        }
+
+        function updateCursor(x, y) {
+            if (!showSplitLines) {
+                canvas.style.cursor = 'crosshair';
+                return;
+            }
+
+            const scaleX = imageSize.width / currentImage.width;
+            const scaleY = imageSize.height / currentImage.height;
+
+            const handleCheck = checkHandleHit(x, y, scaleX, scaleY);
+            if (handleCheck) {
+                const cursors = {
+                    'nw': 'nw-resize',
+                    'ne': 'ne-resize',
+                    'sw': 'sw-resize',
+                    'se': 'se-resize',
+                    'n': 'n-resize',
+                    's': 's-resize',
+                    'w': 'w-resize',
+                    'e': 'e-resize'
+                };
+                canvas.style.cursor = cursors[handleCheck.handle];
+                return;
+            }
+
+            // 检查是否在分割框内
+            for (let i = splitBoxes.length - 1; i >= 0; i--) {
+                const box = splitBoxes[i];
+                const boxX = box.x * scaleX;
+                const boxY = box.y * scaleY;
+                const boxWidth = box.width * scaleX;
+                const boxHeight = box.height * scaleY;
+
+                if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
+                    canvas.style.cursor = 'move';
+                    return;
+                }
+            }
+
+            canvas.style.cursor = 'crosshair';
+        }
+
+        function onCanvasMouseUp(e) {
+            isDragging = false;
+            isResizing = false;
+            resizeHandle = null;
+        }
+
+        function onCanvasDoubleClick(e) {
+            if (!currentImage || splitBoxes.length === 0) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const scaleX = imageSize.width / currentImage.width;
+            const scaleY = imageSize.height / currentImage.height;
+
+            // 检查是否双击分割框
+            for (let i = splitBoxes.length - 1; i >= 0; i--) {
+                const box = splitBoxes[i];
+                const boxX = box.x * scaleX;
+                const boxY = box.y * scaleY;
+                const boxWidth = box.width * scaleX;
+                const boxHeight = box.height * scaleY;
+
+                if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
+                    splitBoxes.splice(i, 1);
+                    selectedBoxIndex = null;
+                    updateDisplay();
+                    return;
+                }
+            }
+        }
+
+        function onCanvasWheel(e) {
+            e.preventDefault();
+            if (!currentImage) return;
+
+            const delta = e.deltaY;
+            const zoomSpeed = 0.1;
+
+            if (delta < 0) {
+                zoomFactor = Math.min(zoomFactor * (1 + zoomSpeed), maxZoom);
+            } else {
+                zoomFactor = Math.max(zoomFactor * (1 - zoomSpeed), minZoom);
+            }
+
+            updateDisplay();
+        }
+
+        function addSplitBox(x, y) {
+            const scaleX = imageSize.width / currentImage.width;
+            const scaleY = imageSize.height / currentImage.height;
+
+            const width = parseInt(document.getElementById('widthInput').value);
+            const height = parseInt(document.getElementById('heightInput').value);
+
+            const originalX = 0;
+            const originalY = Math.max(0, Math.min(y / scaleY, currentImage.height - height));
+
+            const newBox = {
+                x: originalX,
+                y: Math.floor(originalY),
+                width: width,
+                height: height
+            };
+
+            // 检查重叠
+            if (!isOverlapping(newBox)) {
+                splitBoxes.push(newBox);
+                selectedBoxIndex = splitBoxes.length - 1;
+                updateDisplay();
+            }
+        }
+
+        function moveSplitBox(x, y) {
+            const box = splitBoxes[selectedBoxIndex];
+            const scaleX = imageSize.width / currentImage.width;
+            const scaleY = imageSize.height / currentImage.height;
+
+            const dx = (x - dragStart.x) / scaleX;
+            const dy = (y - dragStart.y) / scaleY;
+
+            const newX = Math.max(0, Math.min(dragStart.box.x + dx, currentImage.width - box.width));
+            const newY = Math.max(0, Math.min(dragStart.box.y + dy, currentImage.height - box.height));
+
+            const newBox = { ...box, x: Math.floor(newX), y: Math.floor(newY) };
+
+            if (!isOverlapping(newBox, selectedBoxIndex)) {
+                box.x = newBox.x;
+                box.y = newBox.y;
+            }
+        }
+
+        function resizeSplitBox(x, y) {
+            const box = splitBoxes[selectedBoxIndex];
+            const scaleX = imageSize.width / currentImage.width;
+            const scaleY = imageSize.height / currentImage.height;
+
+            const dx = (x - dragStart.x) / scaleX;
+            const dy = (y - dragStart.y) / scaleY;
+
+            const ratio = getCurrentRatio();
+            const minSize = 10;
+
+            let newBox = { ...dragStart.box };
+
+            switch (resizeHandle) {
+                case 'se':
+                    newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                    if (ratio) {
+                        newBox.height = Math.floor(newBox.width / ratio);
+                    } else {
+                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
+                    }
+                    break;
+                case 'sw':
+                    newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                    if (ratio) {
+                        newBox.height = Math.floor(newBox.width / ratio);
+                    } else {
+                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
+                    }
+                    break;
+                case 'ne':
+                    newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                    newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                    newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                    if (ratio) {
+                        newBox.height = Math.floor(newBox.width / ratio);
+                    }
+                    break;
+                case 'nw':
+                    newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                    newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                    newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                    if (ratio) {
+                        newBox.height = Math.floor(newBox.width / ratio);
+                    }
+                    break;
+                case 'e':
+                    newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                    if (ratio) {
+                        newBox.height = Math.floor(newBox.width / ratio);
+                    }
+                    break;
+                case 'w':
+                    newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                    if (ratio) {
+                        newBox.height = Math.floor(newBox.width / ratio);
+                    }
+                    break;
+                case 's':
+                    newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
+                    if (ratio) {
+                        newBox.width = Math.floor(newBox.height * ratio);
+                    }
+                    break;
+                case 'n':
+                    newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                    newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                    if (ratio) {
+                        newBox.width = Math.floor(newBox.height * ratio);
+                    }
+                    break;
+            }
+
+            if (!isOverlapping(newBox, selectedBoxIndex)) {
+                Object.assign(box, newBox);
+            }
+        }
+
+        function isOverlapping(newBox, ignoreIndex = null) {
+            for (let i = 0; i < splitBoxes.length; i++) {
+                if (i === ignoreIndex) continue;
+
+                const box = splitBoxes[i];
+                if (!(newBox.x + newBox.width <= box.x ||
+                      newBox.x >= box.x + box.width ||
+                      newBox.y + newBox.height <= box.y ||
+                      newBox.y >= box.y + box.height)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function getCurrentRatio() {
+            const ratioSelect = document.getElementById('ratioSelect');
+            if (ratioSelect.value === 'custom') return null;
+
+            const [w, h] = ratioSelect.value.split(':').map(Number);
+            return w / h;
+        }
+
+        // 控制按钮
+        function toggleSplitLines() {
+            if (!currentImage) {
+                alert('请先加载图片！');
+                return;
+            }
+            showSplitLines = !showSplitLines;
+            updateDisplay();
+        }
+
+        function zoomIn() {
+            if (!currentImage) return;
+            zoomFactor = Math.min(zoomFactor * 1.2, maxZoom);
+            updateDisplay();
+        }
+
+        function zoomOut() {
+            if (!currentImage) return;
+            zoomFactor = Math.max(zoomFactor / 1.2, minZoom);
+            updateDisplay();
+        }
+
+        function resetZoom() {
+            if (!currentImage) return;
+            zoomFactor = 1.0;
+            updateDisplay();
+        }
+
+        function clearAll() {
+            if (confirm('确定要清空所有内容吗？')) {
+                currentImage = null;
+                splitBoxes = [];
+                selectedBoxIndex = null;
+                showSplitLines = false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                uploadArea.classList.remove('hidden');
+                document.getElementById('infoLabel').textContent = '等待加载图片...';
+            }
+        }
+
+        function onRatioChange() {
+            const ratioSelect = document.getElementById('ratioSelect');
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+
+            if (ratioSelect.value === 'custom') {
+                heightInput.disabled = false;
+            } else {
+                heightInput.disabled = true;
+                const [w, h] = ratioSelect.value.split(':').map(Number);
+                const width = parseInt(widthInput.value);
+                heightInput.value = Math.floor(width * h / w);
+            }
+        }
+
+        function onSizeChange() {
+            const ratioSelect = document.getElementById('ratioSelect');
+            if (ratioSelect.value !== 'custom') {
+                onRatioChange();
+            }
+        }
+
+        function executeSplit() {
+            if (!currentImage || splitBoxes.length === 0) {
+                alert('请先添加分割框！');
+                return;
+            }
+
+            splitBoxes.forEach((box, index) => {
+                // 创建临时画布
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = box.width;
+                tempCanvas.height = box.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // 裁剪图片
+                tempCtx.drawImage(
+                    currentImage,
+                    box.x, box.y, box.width, box.height,
+                    0, 0, box.width, box.height
+                );
+
+                // 下载
+                tempCanvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `分割_${index + 1}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+
+            alert(`成功分割成 ${splitBoxes.length} 个图片！`);
+        }
+
+        // 初始化比例选择
+        onRatioChange();
+    </script>
+</body>
+</html>
+
