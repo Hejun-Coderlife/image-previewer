@@ -880,6 +880,7 @@
                 const inputHeight = parseInt(document.getElementById('heightInput').value);
                 const inputRatio = inputWidth / inputHeight;
                 height = Math.floor(width / inputRatio);
+                console.log('自定义比例计算:', { inputWidth, inputHeight, inputRatio, width, height });
             }
 
             // 默认放在图片顶部，宽度与图片完全对齐
@@ -975,63 +976,52 @@
 
             let newBox = { ...dragStart.box };
 
+            // 获取当前比例（包括自定义比例）
+            let currentRatio = ratio;
+            if (!currentRatio) {
+                // 自定义比例时，计算输入框的比例
+                const inputWidth = parseInt(document.getElementById('widthInput').value);
+                const inputHeight = parseInt(document.getElementById('heightInput').value);
+                currentRatio = inputWidth / inputHeight;
+            }
+
             switch (resizeHandle) {
                 case 'se':
                     newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
-                    if (ratio) {
-                        newBox.height = Math.floor(newBox.width / ratio);
-                    } else {
-                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
-                    }
+                    newBox.height = Math.floor(newBox.width / currentRatio);
                     break;
                 case 'sw':
                     newBox.width = Math.max(minSize, dragStart.box.width - dx);
-                    if (ratio) {
-                        newBox.height = Math.floor(newBox.width / ratio);
-                    } else {
-                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
-                    }
+                    newBox.height = Math.floor(newBox.width / currentRatio);
                     break;
                 case 'ne':
                     newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
                     newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
                     newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
-                    if (ratio) {
-                        newBox.height = Math.floor(newBox.width / ratio);
-                    }
+                    newBox.height = Math.floor(newBox.width / currentRatio);
                     break;
                 case 'nw':
                     newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
                     newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
                     newBox.width = Math.max(minSize, dragStart.box.width - dx);
-                    if (ratio) {
-                        newBox.height = Math.floor(newBox.width / ratio);
-                    }
+                    newBox.height = Math.floor(newBox.width / currentRatio);
                     break;
                 case 'e':
                     newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
-                    if (ratio) {
-                        newBox.height = Math.floor(newBox.width / ratio);
-                    }
+                    newBox.height = Math.floor(newBox.width / currentRatio);
                     break;
                 case 'w':
                     newBox.width = Math.max(minSize, dragStart.box.width - dx);
-                    if (ratio) {
-                        newBox.height = Math.floor(newBox.width / ratio);
-                    }
+                    newBox.height = Math.floor(newBox.width / currentRatio);
                     break;
                 case 's':
                     newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
-                    if (ratio) {
-                        newBox.width = Math.floor(newBox.height * ratio);
-                    }
+                    newBox.width = Math.floor(newBox.height * currentRatio);
                     break;
                 case 'n':
                     newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
                     newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
-                    if (ratio) {
-                        newBox.width = Math.floor(newBox.height * ratio);
-                    }
+                    newBox.width = Math.floor(newBox.height * currentRatio);
                     break;
             }
 
