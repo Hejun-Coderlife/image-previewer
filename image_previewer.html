@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -672,7 +673,7 @@
         canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
 
         function onCanvasMouseDown(e) {
-            if (!currentImage || !showSplitLines) return;
+            if (!currentImage) return;
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -708,6 +709,8 @@
             }
 
             // 添加新分割框
+            console.log('点击位置:', x, y);
+            console.log('showSplitLines:', showSplitLines);
             addSplitBox(x, y);
         }
 
@@ -869,11 +872,17 @@
                 height: height
             };
 
+            console.log('尝试添加分割框:', newBox);
+            console.log('当前分割框数量:', splitBoxes.length);
+
             // 检查重叠
             if (!isOverlapping(newBox)) {
                 splitBoxes.push(newBox);
                 selectedBoxIndex = splitBoxes.length - 1;
+                console.log('成功添加分割框，新数量:', splitBoxes.length);
                 updateDisplay();
+            } else {
+                console.log('分割框重叠，未添加');
             }
         }
 
