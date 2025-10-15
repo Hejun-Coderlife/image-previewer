@@ -6,7 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图片预览器 - 网页版</title>
+    <title>多图分割器 - 网页版</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
     <style>
         * {
             margin: 0;
@@ -308,7 +309,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🖼️ 图片预览器</h1>
+            <h1>✂️ 多图分割器</h1>
             <div style="font-size: 14px; opacity: 0.9;">网页版 v1.0</div>
         </div>
 
@@ -891,7 +892,13 @@
                 x: defaultX,
                 y: defaultY,
                 width: width,
-                height: height
+                height: height,
+                ratio: ratio || (() => {
+                    // 自定义比例时，计算输入框的比例
+                    const inputWidth = parseInt(document.getElementById('widthInput').value);
+                    const inputHeight = parseInt(document.getElementById('heightInput').value);
+                    return inputWidth / inputHeight;
+                })()
             };
 
             splitBoxes.push(defaultBox);
@@ -927,7 +934,13 @@
                 x: originalX,
                 y: Math.floor(originalY),
                 width: width,
-                height: height
+                height: height,
+                ratio: ratio || (() => {
+                    // 自定义比例时，计算输入框的比例
+                    const inputWidth = parseInt(document.getElementById('widthInput').value);
+                    const inputHeight = parseInt(document.getElementById('heightInput').value);
+                    return inputWidth / inputHeight;
+                })()
             };
 
             console.log('尝试添加分割框:', newBox);
@@ -976,13 +989,17 @@
 
             let newBox = { ...dragStart.box };
 
-            // 获取当前比例（包括自定义比例）
-            let currentRatio = ratio;
+            // 使用当前分割框记录的比例
+            let currentRatio = box.ratio;
             if (!currentRatio) {
-                // 自定义比例时，计算输入框的比例
-                const inputWidth = parseInt(document.getElementById('widthInput').value);
-                const inputHeight = parseInt(document.getElementById('heightInput').value);
-                currentRatio = inputWidth / inputHeight;
+                // 如果没有记录比例，使用当前设置的比例
+                currentRatio = ratio;
+                if (!currentRatio) {
+                    // 自定义比例时，计算输入框的比例
+                    const inputWidth = parseInt(document.getElementById('widthInput').value);
+                    const inputHeight = parseInt(document.getElementById('heightInput').value);
+                    currentRatio = inputWidth / inputHeight;
+                }
             }
 
             switch (resizeHandle) {
