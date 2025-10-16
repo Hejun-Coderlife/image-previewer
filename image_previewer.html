@@ -315,24 +315,24 @@ Screenshot 2025-10-15 at 16.57.59.png
 
         <div class="control-panel">
             <label for="fileInput" class="btn btn-primary">
-                📁 选择图片
+                📁 选择
             </label>
             <input type="file" id="fileInput" accept="image/*" multiple>
 
             <button class="btn btn-info" onclick="fitWindow()">
-                🔲 适应窗口
+                🔲 全览
             </button>
 
             <button class="btn btn-success" onclick="toggleSplitLines()">
-                📏 显示/隐藏分割线
+                📏 显示/隐藏
             </button>
 
             <button class="btn btn-warning" onclick="executeSplit()">
-                ✂️ 执行分割
+                ✂️ 分割
             </button>
 
             <button class="btn btn-danger" onclick="clearAll()">
-                🗑️ 清空所有
+                🗑️ 清空
             </button>
 
             <div class="split-params">
@@ -600,7 +600,7 @@ Screenshot 2025-10-15 at 16.57.59.png
             }
         }
 
-        function updateDisplay() {
+        function updateDisplay(shouldEnsureVisible = true) {
             if (!currentImage) return;
 
             const displayWidth = currentImage.width * zoomFactor;
@@ -626,8 +626,10 @@ Screenshot 2025-10-15 at 16.57.59.png
 
             updateInfo();
             
-            // 确保滚动到顶部
-            ensureImageVisible();
+            // 只有在需要时才确保滚动位置
+            if (shouldEnsureVisible) {
+                ensureImageVisible();
+            }
         }
 
         function drawSplitBoxes() {
@@ -759,7 +761,7 @@ Screenshot 2025-10-15 at 16.57.59.png
         canvas.addEventListener('mousedown', onCanvasMouseDown);
         canvas.addEventListener('mousemove', onCanvasMouseMove);
         canvas.addEventListener('mouseup', onCanvasMouseUp);
-        canvas.addEventListener('dblclick', onCanvasDoubleClick);
+        canvas.addEventListener('dblclick', onCanvasDoubleClick, { passive: false });
         canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
 
         function onCanvasMouseDown(e) {
@@ -772,18 +774,42 @@ Screenshot 2025-10-15 at 16.57.59.png
             const scaleX = imageSize.width / currentImage.width;
             const scaleY = imageSize.height / currentImage.height;
 
+            // 计算缩放比例 - 使用zoomFactor而不是imageSize
+            const actualScaleX = zoomFactor;
+            const actualScaleY = zoomFactor;
+
+            console.log('单击事件调试信息:', {
+                clickX: x,
+                clickY: y,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                imageSize: imageSize,
+                originalSize: { width: currentImage.width, height: currentImage.height },
+                zoomFactor: zoomFactor,
+                oldScaleX: scaleX,
+                oldScaleY: scaleY,
+                newScaleX: actualScaleX,
+                newScaleY: actualScaleY,
+                selectedBoxIndex: selectedBoxIndex,
+                isDragging: isDragging,
+                isResizing: isResizing,
+                isResizeLocked: isResizeLocked,
+                splitBoxCount: splitBoxes.length,
+                scrollPosition: { scrollTop: canvasContainer.scrollTop, scrollLeft: canvasContainer.scrollLeft }
+            });
+
             // 如果正在调整大小，点击任意位置锁定大小
             if (isResizing) {
                 isResizing = false;
                 isResizeLocked = true;
                 resizeHandle = null;
                 console.log('锁定分割框大小');
-                updateDisplay();
+                updateDisplay(false); // 锁定大小时不跳转滚动位置
                 return;
             }
 
             // 检查是否点击手柄
-            const handleCheck = checkHandleHit(x, y, scaleX, scaleY);
+            const handleCheck = checkHandleHit(x, y, actualScaleX, actualScaleY);
             if (handleCheck) {
                 isResizing = true;
                 isResizeLocked = false; // 开始调整大小时解除锁定
@@ -797,10 +823,10 @@ Screenshot 2025-10-15 at 16.57.59.png
             // 检查是否点击分割框
             for (let i = splitBoxes.length - 1; i >= 0; i--) {
                 const box = splitBoxes[i];
-                const boxX = box.x * scaleX;
-                const boxY = box.y * scaleY;
-                const boxWidth = box.width * scaleX;
-                const boxHeight = box.height * scaleY;
+                const boxX = box.x * actualScaleX;
+                const boxY = box.y * actualScaleY;
+                const boxWidth = box.width * actualScaleX;
+                const boxHeight = box.height * actualScaleY;
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
                     isDragging = true;
@@ -813,16 +839,41 @@ Screenshot 2025-10-15 at 16.57.59.png
 
             // 如果正在拖动，点击任意位置停止拖动
             if (isDragging) {
+                console.log('检测到isDragging为true，停止拖动分割框');
                 isDragging = false;
                 console.log('停止拖动分割框');
-                updateDisplay();
+                updateDisplay(false); // 停止拖动时不跳转滚动位置
                 return;
             }
 
             // 添加新分割框
             console.log('点击位置:', x, y);
             console.log('showSplitLines:', showSplitLines);
+            console.log('准备添加新分割框，当前滚动位置:', {
+                scrollTop: canvasContainer.scrollTop,
+                scrollLeft: canvasContainer.scrollLeft
+            });
+            console.log('当前状态:', {
+                selectedBoxIndex: selectedBoxIndex,
+                isDragging: isDragging,
+                isResizing: isResizing,
+                isResizeLocked: isResizeLocked
+            });
+            
+            // 强制重置所有状态，确保能够添加分割框
+            isDragging = false;
+            isResizing = false;
+            isResizeLocked = false;
+            resizeHandle = null;
+            console.log('强制重置状态后:', {
+                isDragging: isDragging,
+                isResizing: isResizing,
+                isResizeLocked: isResizeLocked
+            });
+            
+            console.log('即将调用addSplitBox函数');
             addSplitBox(x, y);
+            console.log('addSplitBox函数调用完成');
         }
 
         function checkHandleHit(x, y, scaleX, scaleY) {
@@ -867,10 +918,10 @@ Screenshot 2025-10-15 at 16.57.59.png
             if (!isResizeLocked) {
                 if (isResizing && selectedBoxIndex !== null) {
                     resizeSplitBox(x, y);
-                    updateDisplay();
+                    updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
                 } else if (isDragging && selectedBoxIndex !== null) {
                     moveSplitBox(x, y);
-                    updateDisplay();
+                    updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
                 }
             }
 
@@ -884,10 +935,11 @@ Screenshot 2025-10-15 at 16.57.59.png
                 return;
             }
 
-            const scaleX = imageSize.width / currentImage.width;
-            const scaleY = imageSize.height / currentImage.height;
+            // 计算缩放比例 - 使用zoomFactor而不是imageSize
+            const actualScaleX = zoomFactor;
+            const actualScaleY = zoomFactor;
 
-            const handleCheck = checkHandleHit(x, y, scaleX, scaleY);
+            const handleCheck = checkHandleHit(x, y, actualScaleX, actualScaleY);
             if (handleCheck) {
                 const cursors = {
                     'nw': 'nw-resize',
@@ -906,10 +958,10 @@ Screenshot 2025-10-15 at 16.57.59.png
             // 检查是否在分割框内
             for (let i = splitBoxes.length - 1; i >= 0; i--) {
                 const box = splitBoxes[i];
-                const boxX = box.x * scaleX;
-                const boxY = box.y * scaleY;
-                const boxWidth = box.width * scaleX;
-                const boxHeight = box.height * scaleY;
+                const boxX = box.x * actualScaleX;
+                const boxY = box.y * actualScaleY;
+                const boxWidth = box.width * actualScaleX;
+                const boxHeight = box.height * actualScaleY;
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
                     // 如果调整大小被锁定，显示锁定光标
@@ -936,31 +988,74 @@ Screenshot 2025-10-15 at 16.57.59.png
         }
 
         function onCanvasDoubleClick(e) {
+            e.preventDefault(); // 阻止默认行为，防止页面滚动
+            e.stopPropagation(); // 阻止事件冒泡
+            
             if (!currentImage || splitBoxes.length === 0) return;
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            const scaleX = imageSize.width / currentImage.width;
-            const scaleY = imageSize.height / currentImage.height;
+            // 计算缩放比例 - 使用zoomFactor而不是imageSize
+            const actualScaleX = zoomFactor;
+            const actualScaleY = zoomFactor;
+
+            console.log('双击事件调试信息:', {
+                clickX: x,
+                clickY: y,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                imageSize: imageSize,
+                originalSize: { width: currentImage.width, height: currentImage.height },
+                zoomFactor: zoomFactor,
+                actualScaleX: actualScaleX,
+                actualScaleY: actualScaleY,
+                splitBoxCount: splitBoxes.length
+            });
 
             // 检查是否双击分割框
             for (let i = splitBoxes.length - 1; i >= 0; i--) {
                 const box = splitBoxes[i];
-                const boxX = box.x * scaleX;
-                const boxY = box.y * scaleY;
-                const boxWidth = box.width * scaleX;
-                const boxHeight = box.height * scaleY;
+                const boxX = box.x * actualScaleX;
+                const boxY = box.y * actualScaleY;
+                const boxWidth = box.width * actualScaleX;
+                const boxHeight = box.height * actualScaleY;
+
+                console.log(`检查分割框 ${i}:`, {
+                    boxX, boxY, boxWidth, boxHeight,
+                    clickX: x, clickY: y,
+                    inBox: x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight
+                });
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
+                    console.log('双击删除前状态:');
+                    console.log('- 要删除的分割框索引:', i);
+                    console.log('- 删除前分割框数量:', splitBoxes.length);
+                    console.log('- 删除前分割框列表:', splitBoxes);
+                    
                     splitBoxes.splice(i, 1);
                     selectedBoxIndex = null;
                     isResizeLocked = false; // 重置锁定状态
-                    updateDisplay();
+                    isDragging = false; // 重置拖动状态
+                    isResizing = false; // 重置调整大小状态
+                    resizeHandle = null; // 重置手柄状态
+                    
+                    console.log(`删除分割框 ${i}，剩余数量:`, splitBoxes.length);
+                    console.log('- 删除后分割框列表:', splitBoxes);
+                    console.log('删除后重置的状态:', {
+                        selectedBoxIndex: selectedBoxIndex,
+                        isDragging: isDragging,
+                        isResizing: isResizing,
+                        isResizeLocked: isResizeLocked,
+                        resizeHandle: resizeHandle
+                    });
+                    updateDisplay(false); // 删除时不调用滚动函数，保持当前位置
                     return;
                 }
             }
+            
+            console.log('双击位置不在任何分割框内');
         }
 
         function onCanvasWheel(e) {
@@ -1031,8 +1126,10 @@ Screenshot 2025-10-15 at 16.57.59.png
         }
 
         function addSplitBox(x, y) {
+            console.log('addSplitBox函数被调用，参数:', { x, y });
             const scaleX = imageSize.width / currentImage.width;
             const scaleY = imageSize.height / currentImage.height;
+            const actualScaleY = zoomFactor; // 修复：定义actualScaleY
 
             // 分割框宽度与图片宽度100%对齐，高度根据比例计算
             const width = currentImage.width;
@@ -1052,7 +1149,7 @@ Screenshot 2025-10-15 at 16.57.59.png
 
             // 宽度与图片完全对齐，Y坐标跟随点击位置
             const originalX = 0;
-            const originalY = Math.max(0, Math.min(y / scaleY, currentImage.height - height));
+            const originalY = Math.max(0, Math.min(y / actualScaleY, currentImage.height - height));
 
             const newBox = {
                 x: originalX,
@@ -1071,7 +1168,15 @@ Screenshot 2025-10-15 at 16.57.59.png
             console.log('当前分割框数量:', splitBoxes.length);
 
             // 检查重叠
-            if (!isOverlapping(newBox)) {
+            console.log('检查重叠前的状态:');
+            console.log('- 当前分割框数量:', splitBoxes.length);
+            console.log('- 当前分割框列表:', splitBoxes);
+            console.log('- 新分割框:', newBox);
+            
+            const isOverlap = isOverlapping(newBox);
+            console.log('- 是否重叠:', isOverlap);
+            
+            if (!isOverlap) {
                 splitBoxes.push(newBox);
                 selectedBoxIndex = splitBoxes.length - 1;
                 isResizeLocked = false; // 新添加的分割框默认未锁定
@@ -1079,7 +1184,15 @@ Screenshot 2025-10-15 at 16.57.59.png
                 isResizing = false; // 重置调整大小状态
                 resizeHandle = null; // 重置手柄状态
                 console.log('成功添加分割框，新数量:', splitBoxes.length);
-                updateDisplay();
+                console.log('添加分割框前滚动位置:', {
+                    scrollTop: canvasContainer.scrollTop,
+                    scrollLeft: canvasContainer.scrollLeft
+                });
+                updateDisplay(false); // 添加分割框时不跳转滚动位置
+                console.log('添加分割框后滚动位置:', {
+                    scrollTop: canvasContainer.scrollTop,
+                    scrollLeft: canvasContainer.scrollLeft
+                });
             } else {
                 console.log('分割框重叠，未添加');
             }
@@ -1205,7 +1318,7 @@ Screenshot 2025-10-15 at 16.57.59.png
                 return;
             }
             showSplitLines = !showSplitLines;
-            updateDisplay();
+            updateDisplay(false); // 切换显示分割线时不跳转滚动位置
         }
 
         function zoomIn() {
@@ -1338,13 +1451,13 @@ Screenshot 2025-10-15 at 16.57.59.png
                     isResizeLocked = true;
                     resizeHandle = null;
                     console.log('点击图片外区域，锁定分割框大小');
-                    updateDisplay();
+                    updateDisplay(false); // 点击图片外区域时不跳转滚动位置
                 }
                 // 如果正在拖动，则停止拖动
                 else if (isDragging) {
                     isDragging = false;
                     console.log('点击图片外区域，停止拖动分割框');
-                    updateDisplay();
+                    updateDisplay(false); // 点击图片外区域时不跳转滚动位置
                 }
             }
         });
