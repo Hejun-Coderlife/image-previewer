@@ -414,6 +414,7 @@ Screenshot 2025-10-15 at 16.57.59.png
         let imagePosition = { x: 0, y: 0 };
         let imageSize = { width: 0, height: 0 };
         let isResizeLocked = false; // 调整大小是否被锁定
+        let isCurrentlyResizing = false; // 是否正在拖动调整大小
 
         // 初始化
         const fileInput = document.getElementById('fileInput');
@@ -423,6 +424,14 @@ Screenshot 2025-10-15 at 16.57.59.png
         } else {
             console.error('找不到文件输入元素');
         }
+        
+        // 绑定鼠标事件监听器
+        canvas.addEventListener('mousedown', onCanvasMouseDown);
+        canvas.addEventListener('mousemove', onCanvasMouseMove);
+        canvas.addEventListener('mouseup', onCanvasMouseUp);
+        canvas.addEventListener('dblclick', onCanvasDoubleClick);
+        canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
+        console.log('鼠标事件监听器已绑定');
         
         // 添加容器滚动事件监听
         canvasContainer.addEventListener('scroll', function() {
@@ -798,23 +807,29 @@ Screenshot 2025-10-15 at 16.57.59.png
                 scrollPosition: { scrollTop: canvasContainer.scrollTop, scrollLeft: canvasContainer.scrollLeft }
             });
 
-            // 如果正在调整大小，点击任意位置锁定大小
-            if (isResizing) {
-                isResizing = false;
-                isResizeLocked = true;
-                resizeHandle = null;
-                console.log('锁定分割框大小');
-                updateDisplay(false); // 锁定大小时不跳转滚动位置
-                return;
-            }
+            // 注意：锁定逻辑已移到 onCanvasMouseUp 中，这里不再需要处理
 
             // 检查是否点击手柄
             const handleCheck = checkHandleHit(x, y, actualScaleX, actualScaleY);
             if (handleCheck) {
+                console.log('点击手柄时的状态:', {
+                    isResizing: isResizing,
+                    isCurrentlyResizing: isCurrentlyResizing,
+                    isResizeLocked: isResizeLocked
+                });
+                
+                // 检查该分割框是否被锁定，如果锁定则解除锁定
+                const targetBoxIndex = handleCheck.index;
+                if (isResizeLocked && selectedBoxIndex === targetBoxIndex) {
+                    console.log('分割框已锁定，点击手柄解除锁定并开始调整大小');
+                    isResizeLocked = false; // 解除锁定
+                }
+                
                 isResizing = true;
+                isCurrentlyResizing = true; // 开始拖动调整大小
                 isResizeLocked = false; // 开始调整大小时解除锁定
                 resizeHandle = handleCheck.handle;
-                selectedBoxIndex = handleCheck.index;
+                selectedBoxIndex = targetBoxIndex;
                 dragStart = { x, y, box: { ...splitBoxes[selectedBoxIndex] } };
                 console.log('开始调整分割框大小');
                 return;
@@ -863,6 +878,7 @@ Screenshot 2025-10-15 at 16.57.59.png
             // 强制重置所有状态，确保能够添加分割框
             isDragging = false;
             isResizing = false;
+            isCurrentlyResizing = false;
             isResizeLocked = false;
             resizeHandle = null;
             console.log('强制重置状态后:', {
@@ -914,15 +930,15 @@ Screenshot 2025-10-15 at 16.57.59.png
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            // 只有在未锁定状态下才允许拖动和调整大小
-            if (!isResizeLocked) {
-                if (isResizing && selectedBoxIndex !== null) {
-                    resizeSplitBox(x, y);
-                    updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
-                } else if (isDragging && selectedBoxIndex !== null) {
-                    moveSplitBox(x, y);
-                    updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
-                }
+            // 调整大小：只有在未锁定状态下才允许
+            if (isCurrentlyResizing && selectedBoxIndex !== null && !isResizeLocked) {
+                resizeSplitBox(x, y);
+                updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
+            }
+            // 拖动：无论是否锁定都允许
+            else if (isDragging && selectedBoxIndex !== null) {
+                moveSplitBox(x, y);
+                updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
             }
 
             // 更新光标样式
@@ -941,17 +957,23 @@ Screenshot 2025-10-15 at 16.57.59.png
 
             const handleCheck = checkHandleHit(x, y, actualScaleX, actualScaleY);
             if (handleCheck) {
-                const cursors = {
-                    'nw': 'nw-resize',
-                    'ne': 'ne-resize',
-                    'sw': 'sw-resize',
-                    'se': 'se-resize',
-                    'n': 'n-resize',
-                    's': 's-resize',
-                    'w': 'w-resize',
-                    'e': 'e-resize'
-                };
-                canvas.style.cursor = cursors[handleCheck.handle];
+                // 检查该分割框是否被锁定
+                const targetBoxIndex = handleCheck.index;
+                if (isResizeLocked && selectedBoxIndex === targetBoxIndex) {
+                    canvas.style.cursor = 'not-allowed'; // 锁定的分割框显示禁止光标
+                } else {
+                    const cursors = {
+                        'nw': 'nw-resize',
+                        'ne': 'ne-resize',
+                        'sw': 'sw-resize',
+                        'se': 'se-resize',
+                        'n': 'n-resize',
+                        's': 's-resize',
+                        'w': 'w-resize',
+                        'e': 'e-resize'
+                    };
+                    canvas.style.cursor = cursors[handleCheck.handle];
+                }
                 return;
             }
 
@@ -964,12 +986,8 @@ Screenshot 2025-10-15 at 16.57.59.png
                 const boxHeight = box.height * actualScaleY;
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
-                    // 如果调整大小被锁定，显示锁定光标
-                    if (isResizeLocked) {
-                        canvas.style.cursor = 'not-allowed';
-                    } else {
-                        canvas.style.cursor = 'move';
-                    }
+                    // 锁定的分割框仍然可以拖动，显示移动光标
+                    canvas.style.cursor = 'move';
                     return;
                 }
             }
@@ -978,12 +996,29 @@ Screenshot 2025-10-15 at 16.57.59.png
         }
 
         function onCanvasMouseUp(e) {
-            // 只有在实际拖动或调整大小时才重置状态
-            if (isDragging || isResizing) {
+            // 停止拖动操作
+            if (isDragging) {
                 isDragging = false;
+                console.log('鼠标松开，停止拖动分割框');
+            }
+            // 停止拖动调整大小，并立即锁定分割框
+            if (isCurrentlyResizing) {
+                console.log('鼠标松开前的状态:', {
+                    isResizing: isResizing,
+                    isCurrentlyResizing: isCurrentlyResizing,
+                    isResizeLocked: isResizeLocked
+                });
+                isCurrentlyResizing = false;
                 isResizing = false;
+                isResizeLocked = true;
                 resizeHandle = null;
-                console.log('鼠标松开，停止拖动/调整大小');
+                console.log('鼠标松开后的状态:', {
+                    isResizing: isResizing,
+                    isCurrentlyResizing: isCurrentlyResizing,
+                    isResizeLocked: isResizeLocked
+                });
+                console.log('鼠标松开，停止拖动调整大小，立即锁定分割框');
+                updateDisplay(false); // 锁定时不跳转滚动位置
             }
         }
 
@@ -1039,6 +1074,7 @@ Screenshot 2025-10-15 at 16.57.59.png
                     isResizeLocked = false; // 重置锁定状态
                     isDragging = false; // 重置拖动状态
                     isResizing = false; // 重置调整大小状态
+                    isCurrentlyResizing = false; // 重置拖动调整大小状态
                     resizeHandle = null; // 重置手柄状态
                     
                     console.log(`删除分割框 ${i}，剩余数量:`, splitBoxes.length);
@@ -1182,6 +1218,7 @@ Screenshot 2025-10-15 at 16.57.59.png
                 isResizeLocked = false; // 新添加的分割框默认未锁定
                 isDragging = false; // 重置拖动状态
                 isResizing = false; // 重置调整大小状态
+                isCurrentlyResizing = false; // 重置拖动调整大小状态
                 resizeHandle = null; // 重置手柄状态
                 console.log('成功添加分割框，新数量:', splitBoxes.length);
                 console.log('添加分割框前滚动位置:', {
@@ -1373,6 +1410,7 @@ Screenshot 2025-10-15 at 16.57.59.png
                 isResizeLocked = false; // 重置锁定状态
                 isDragging = false;
                 isResizing = false;
+                isCurrentlyResizing = false;
                 resizeHandle = null;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 uploadArea.classList.remove('hidden');
@@ -1441,20 +1479,30 @@ Screenshot 2025-10-15 at 16.57.59.png
         // 初始化比例选择
         onRatioChange();
         
+        // 添加全局鼠标事件监听器，处理在图片外松开鼠标的情况
+        document.addEventListener('mouseup', function(e) {
+            // 如果松开鼠标时不在canvas区域，也要处理锁定逻辑
+            if (isCurrentlyResizing) {
+                console.log('全局鼠标松开，停止拖动调整大小，立即锁定分割框');
+                isCurrentlyResizing = false;
+                isResizing = false;
+                isResizeLocked = true;
+                resizeHandle = null;
+                updateDisplay(false);
+            } else if (isDragging) {
+                console.log('全局鼠标松开，停止拖动分割框');
+                isDragging = false;
+                updateDisplay(false);
+            }
+        });
+        
         // 添加全局点击事件监听器，处理点击图片外区域的情况
         document.addEventListener('click', function(e) {
             // 如果点击的不是canvas区域
             if (!canvas.contains(e.target)) {
-                // 如果正在调整大小，则锁定大小
-                if (isResizing) {
-                    isResizing = false;
-                    isResizeLocked = true;
-                    resizeHandle = null;
-                    console.log('点击图片外区域，锁定分割框大小');
-                    updateDisplay(false); // 点击图片外区域时不跳转滚动位置
-                }
+                // 注意：锁定逻辑已移到全局 mouseup 事件中自动处理
                 // 如果正在拖动，则停止拖动
-                else if (isDragging) {
+                if (isDragging) {
                     isDragging = false;
                     console.log('点击图片外区域，停止拖动分割框');
                     updateDisplay(false); // 点击图片外区域时不跳转滚动位置
