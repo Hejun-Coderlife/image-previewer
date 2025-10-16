@@ -344,7 +344,7 @@
                         <option value="16:9">16:9</option>
                         <option value="3:4">3:4</option>
                         <option value="9:16">9:16</option>
-                        <option value="custom">自定义</option>
+                        <option value="custom">手动</option>
                     </select>
                 </div>
 
@@ -1121,6 +1121,7 @@
             // 默认分割框宽度与图片宽度100%对齐，高度根据比例计算
             const width = currentImage.width;
             const ratio = getCurrentRatio();
+            const ratioSelect = document.getElementById('ratioSelect');
             let height;
             
             if (ratio) {
@@ -1149,7 +1150,8 @@
                     const inputWidth = parseInt(document.getElementById('widthInput').value);
                     const inputHeight = parseInt(document.getElementById('heightInput').value);
                     return inputWidth / inputHeight;
-                })()
+                })(),
+                mode: ratioSelect.value // 记录创建时的模式
             };
 
             splitBoxes.push(defaultBox);
@@ -1167,6 +1169,7 @@
             // 分割框宽度与图片宽度100%对齐，高度根据比例计算
             const width = currentImage.width;
             const ratio = getCurrentRatio();
+            const ratioSelect = document.getElementById('ratioSelect');
             let height;
             
             if (ratio) {
@@ -1194,7 +1197,8 @@
                     const inputWidth = parseInt(document.getElementById('widthInput').value);
                     const inputHeight = parseInt(document.getElementById('heightInput').value);
                     return inputWidth / inputHeight;
-                })()
+                })(),
+                mode: ratioSelect.value // 记录创建时的模式
             };
 
             console.log('尝试添加分割框:', newBox);
@@ -1264,57 +1268,106 @@
 
             let newBox = { ...dragStart.box };
 
-            // 使用当前分割框记录的比例
-            let currentRatio = box.ratio;
-            if (!currentRatio) {
-                // 如果没有记录比例，使用当前设置的比例
-                currentRatio = ratio;
-                if (!currentRatio) {
-                    // 自定义比例时，计算输入框的比例
-                    const inputWidth = parseInt(document.getElementById('widthInput').value);
-                    const inputHeight = parseInt(document.getElementById('heightInput').value);
-                    currentRatio = inputWidth / inputHeight;
-                }
-            }
+            // 检查当前分割框的模式
+            const isManualMode = box.mode === 'custom';
 
-            switch (resizeHandle) {
-                case 'se':
-                    newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
-                    newBox.height = Math.floor(newBox.width / currentRatio);
-                    break;
-                case 'sw':
-                    newBox.width = Math.max(minSize, dragStart.box.width - dx);
-                    newBox.height = Math.floor(newBox.width / currentRatio);
-                    break;
-                case 'ne':
-                    newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
-                    newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
-                    newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
-                    newBox.height = Math.floor(newBox.width / currentRatio);
-                    break;
-                case 'nw':
-                    newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
-                    newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
-                    newBox.width = Math.max(minSize, dragStart.box.width - dx);
-                    newBox.height = Math.floor(newBox.width / currentRatio);
-                    break;
-                case 'e':
-                    newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
-                    newBox.height = Math.floor(newBox.width / currentRatio);
-                    break;
-                case 'w':
-                    newBox.width = Math.max(minSize, dragStart.box.width - dx);
-                    newBox.height = Math.floor(newBox.width / currentRatio);
-                    break;
-                case 's':
-                    newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
-                    newBox.width = Math.floor(newBox.height * currentRatio);
-                    break;
-                case 'n':
-                    newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
-                    newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
-                    newBox.width = Math.floor(newBox.height * currentRatio);
-                    break;
+            if (isManualMode) {
+                // 手动模式：宽度最大为图片的100%，但可以缩小，可以调整高度
+                switch (resizeHandle) {
+                    case 'se':
+                        // 右下角：调整宽度和高度
+                        newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
+                        break;
+                    case 'sw':
+                        // 左下角：调整宽度和高度
+                        newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
+                        break;
+                    case 'ne':
+                        // 右上角：调整宽度和高度
+                        newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                        newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                        newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                        break;
+                    case 'nw':
+                        // 左上角：调整宽度和高度
+                        newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                        newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                        newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                        break;
+                    case 'e':
+                        // 右边手柄：调整宽度
+                        newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                        break;
+                    case 'w':
+                        // 左边手柄：调整宽度
+                        newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                        break;
+                    case 's':
+                        // 下边手柄：调整高度
+                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
+                        break;
+                    case 'n':
+                        // 上边手柄：调整Y位置和高度
+                        newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                        newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                        break;
+                }
+            } else {
+                // 非手动模式：使用原来的逻辑
+                // 使用当前分割框记录的比例
+                let currentRatio = box.ratio;
+                if (!currentRatio) {
+                    // 如果没有记录比例，使用当前设置的比例
+                    currentRatio = ratio;
+                    if (!currentRatio) {
+                        // 自定义比例时，计算输入框的比例
+                        const inputWidth = parseInt(document.getElementById('widthInput').value);
+                        const inputHeight = parseInt(document.getElementById('heightInput').value);
+                        currentRatio = inputWidth / inputHeight;
+                    }
+                }
+
+                switch (resizeHandle) {
+                    case 'se':
+                        newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                        newBox.height = Math.floor(newBox.width / currentRatio);
+                        break;
+                    case 'sw':
+                        newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                        newBox.height = Math.floor(newBox.width / currentRatio);
+                        break;
+                    case 'ne':
+                        newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                        newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                        newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                        newBox.height = Math.floor(newBox.width / currentRatio);
+                        break;
+                    case 'nw':
+                        newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                        newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                        newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                        newBox.height = Math.floor(newBox.width / currentRatio);
+                        break;
+                    case 'e':
+                        newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
+                        newBox.height = Math.floor(newBox.width / currentRatio);
+                        break;
+                    case 'w':
+                        newBox.width = Math.max(minSize, dragStart.box.width - dx);
+                        newBox.height = Math.floor(newBox.width / currentRatio);
+                        break;
+                    case 's':
+                        newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
+                        newBox.width = Math.floor(newBox.height * currentRatio);
+                        break;
+                    case 'n':
+                        newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
+                        newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
+                        newBox.width = Math.floor(newBox.height * currentRatio);
+                        break;
+                }
             }
 
             if (!isOverlapping(newBox, selectedBoxIndex)) {
