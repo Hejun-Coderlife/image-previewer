@@ -1,6 +1,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -19,19 +21,16 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
             background: white;
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
 
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
+            width: 100%;
+            height: 100vh;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 40px);
         }
 
         .header {
@@ -289,19 +288,29 @@
             transform: scale(1.05);
         }
 
+        @media (max-width: 1400px) {
+            .control-panel {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+
         @media (max-width: 768px) {
             .control-panel {
                 padding: 15px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
             }
 
-            .split-params {
+            .param-group {
                 width: 100%;
+                margin-bottom: 10px;
             }
 
             .info-label {
                 width: 100%;
-                margin-left: 0;
-                margin-top: 10px;
+                margin: 10px 0;
             }
         }
     </style>
@@ -313,7 +322,7 @@
             <div style="font-size: 14px; opacity: 0.9;">网页版 v1.0</div>
         </div>
 
-        <div class="control-panel">
+        <div class="control-panel" style="display: flex; flex-wrap: nowrap; gap: 15px; align-items: center;">
             <label for="fileInput" class="btn btn-primary">
                 📁 选择
             </label>
@@ -335,31 +344,64 @@
                 🗑️ 清空
             </button>
 
-            <div class="split-params">
-                <div class="param-group">
-                    <label>比例:</label>
-                    <select id="ratioSelect" onchange="onRatioChange()">
-                        <option value="1:1">1:1</option>
-                        <option value="4:3">4:3</option>
-                        <option value="16:9">16:9</option>
-                        <option value="3:4">3:4</option>
-                        <option value="9:16">9:16</option>
-                        <option value="custom">手动</option>
-                    </select>
-                </div>
+            <button class="btn btn-warning" onclick="toggleManualMode()">
+                📐 手动比例
+            </button>
 
-                <div class="param-group">
-                    <label>宽(px):</label>
-                    <input type="number" id="widthInput" value="1200" min="10" onchange="onSizeChange()">
-                </div>
+            <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
-                <div class="param-group">
-                    <label>高(px):</label>
-                    <input type="number" id="heightInput" value="1200" min="10" onchange="onSizeChange()">
-                </div>
+            <div class="param-group">
+                <label>比例:</label>
+                <select id="ratioSelect" onchange="onRatioChange()">
+                    <option value="1:1">1:1</option>
+                    <option value="4:3">4:3</option>
+                    <option value="16:9">16:9</option>
+                    <option value="3:4">3:4</option>
+                    <option value="9:16">9:16</option>
+                </select>
             </div>
 
-            <div class="info-label" id="infoLabel">
+            <div class="param-group">
+                <label>宽(px):</label>
+                <input type="number" id="widthInput" value="1200" min="10" onchange="onSizeChange()">
+            </div>
+
+            <div class="param-group">
+                <label>高(px):</label>
+                <input type="number" id="heightInput" value="1200" min="10" onchange="onSizeChange()">
+            </div>
+
+            <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
+
+            <div class="param-group">
+                <label style="color: #2b6cb0; font-weight: 600;">输出宽(px):</label>
+                <input type="number" id="outputWidthInput" value="1200" min="10" onchange="updateOutputHeight()" style="border-color: #4299e1;">
+            </div>
+
+            <div class="param-group">
+                <label style="color: #2b6cb0; font-weight: 600;">输出高(px):</label>
+                <input type="number" id="outputHeightInput" value="1200" min="10" readonly style="border-color: #4299e1; background-color: #f7fafc; color: #718096;">
+            </div>
+
+            <div class="param-group">
+                <label style="color: #2b6cb0; font-weight: 600;">质量:</label>
+                <select id="qualitySelect" style="border-color: #4299e1;">
+                    <option value="0.1">最低 (10%)</option>
+                    <option value="0.2">很低 (20%)</option>
+                    <option value="0.3">低 (30%)</option>
+                    <option value="0.4">较低 (40%)</option>
+                    <option value="0.5">中等 (50%)</option>
+                    <option value="0.6">较好 (60%)</option>
+                    <option value="0.7">良好 (70%)</option>
+                    <option value="0.8">标准 (80%)</option>
+                    <option value="0.9">高质量 (90%)</option>
+                    <option value="1.0" selected>最高 (100%)</option>
+                </select>
+            </div>
+
+            <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
+
+            <div class="info-label" id="infoLabel" style="margin: 0; padding: 8px 12px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 13px; color: #666; white-space: nowrap;">
                 等待加载图片...
             </div>
         </div>
@@ -381,14 +423,6 @@
                     <button class="zoom-btn" onclick="resetZoom()" title="重置">⟲</button>
                 </div>
 
-                <div class="instructions">
-                    <h3>💡 使用说明</h3>
-                    <ul>
-                        <li>单击：添加分割框</li>
-                        <li>双击：去除分割框</li>
-                        <li>1张图片，一次分割成多张</li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>
@@ -1157,6 +1191,7 @@
             splitBoxes.push(defaultBox);
             selectedBoxIndex = 0;
             isResizeLocked = false; // 新添加的分割框默认未锁定
+            updateOutputHeight(); // 自动更新输出高度
             console.log('添加默认分割框:', defaultBox);
         }
 
@@ -1221,6 +1256,7 @@
                 isResizing = false; // 重置调整大小状态
                 isCurrentlyResizing = false; // 重置拖动调整大小状态
                 resizeHandle = null; // 重置手柄状态
+                updateOutputHeight(); // 自动更新输出高度
                 console.log('成功添加分割框，新数量:', splitBoxes.length);
                 console.log('添加分割框前滚动位置:', {
                     scrollTop: canvasContainer.scrollTop,
@@ -1372,6 +1408,7 @@
 
             if (!isOverlapping(newBox, selectedBoxIndex)) {
                 Object.assign(box, newBox);
+                updateOutputHeight(); // 调整大小时自动更新输出高度
             }
         }
 
@@ -1391,9 +1428,9 @@
         }
 
         function getCurrentRatio() {
+            if (isManualMode) return null; // 手动模式时返回null
+            
             const ratioSelect = document.getElementById('ratioSelect');
-            if (ratioSelect.value === 'custom') return null;
-
             const [w, h] = ratioSelect.value.split(':').map(Number);
             return w / h;
         }
@@ -1471,24 +1508,74 @@
         }
 
         function onRatioChange() {
+            if (isManualMode) return; // 手动模式时不执行自动计算
+            
             const ratioSelect = document.getElementById('ratioSelect');
             const widthInput = document.getElementById('widthInput');
             const heightInput = document.getElementById('heightInput');
 
-            if (ratioSelect.value === 'custom') {
-                heightInput.disabled = false;
-            } else {
-                heightInput.disabled = true;
-                const [w, h] = ratioSelect.value.split(':').map(Number);
-                const width = parseInt(widthInput.value);
-                heightInput.value = Math.floor(width * h / w);
-            }
+            const [w, h] = ratioSelect.value.split(':').map(Number);
+            const width = parseInt(widthInput.value);
+            heightInput.value = Math.floor(width * h / w);
         }
 
         function onSizeChange() {
-            const ratioSelect = document.getElementById('ratioSelect');
-            if (ratioSelect.value !== 'custom') {
+            if (!isManualMode) {
                 onRatioChange();
+            }
+        }
+
+        // 新增：根据分割框比例自动计算输出高度
+        function updateOutputHeight() {
+            if (splitBoxes.length === 0) {
+                // 如果没有分割框，使用默认1:1比例
+                const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
+                document.getElementById('outputHeightInput').value = outputWidth;
+                return;
+            }
+
+            // 使用第一个分割框的比例作为参考
+            const firstBox = splitBoxes[0];
+            const boxRatio = firstBox.width / firstBox.height;
+            
+            const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
+            const outputHeight = Math.round(outputWidth / boxRatio);
+            
+            document.getElementById('outputHeightInput').value = outputHeight;
+        }
+
+        // 当分割框发生变化时，自动更新输出高度
+        function onSplitBoxChange() {
+            updateOutputHeight();
+        }
+
+        // 手动比例模式切换
+        let isManualMode = false;
+        
+        function toggleManualMode() {
+            isManualMode = !isManualMode;
+            const ratioSelect = document.getElementById('ratioSelect');
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+            const manualButton = event.target;
+            
+            if (isManualMode) {
+                // 进入手动模式
+                ratioSelect.disabled = true;
+                heightInput.disabled = false;
+                manualButton.textContent = '📐 自动比例';
+                manualButton.classList.remove('btn-warning');
+                manualButton.classList.add('btn-success');
+                console.log('切换到手动比例模式');
+            } else {
+                // 退出手动模式
+                ratioSelect.disabled = false;
+                heightInput.disabled = true;
+                manualButton.textContent = '📐 手动比例';
+                manualButton.classList.remove('btn-success');
+                manualButton.classList.add('btn-warning');
+                onRatioChange(); // 重新计算比例
+                console.log('切换到自动比例模式');
             }
         }
 
@@ -1498,32 +1585,50 @@
                 return;
             }
 
+            // 获取输出尺寸设置
+            const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
+            const quality = parseFloat(document.getElementById('qualitySelect').value);
+
+            if (outputWidth < 10) {
+                alert('输出宽度不能小于10px！');
+                return;
+            }
+
             splitBoxes.forEach((box, index) => {
-                // 创建临时画布
+                // 根据当前分割框的比例计算输出高度
+                const boxRatio = box.width / box.height;
+                const outputHeight = Math.round(outputWidth / boxRatio);
+
+                // 创建临时画布 - 使用计算的输出尺寸
                 const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = box.width;
-                tempCanvas.height = box.height;
+                tempCanvas.width = outputWidth;
+                tempCanvas.height = outputHeight;
                 const tempCtx = tempCanvas.getContext('2d');
 
-                // 裁剪图片
+                // 裁剪并缩放到指定尺寸
                 tempCtx.drawImage(
                     currentImage,
-                    box.x, box.y, box.width, box.height,
-                    0, 0, box.width, box.height
+                    box.x, box.y, box.width, box.height,  // 源区域（分割框区域）
+                    0, 0, outputWidth, outputHeight        // 目标区域（固定输出尺寸）
                 );
 
-                // 下载
+                // 下载 - 使用设置的质量（JPEG格式）
                 tempCanvas.toBlob(blob => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `分割_${index + 1}.png`;
+                    a.download = `分割_${index + 1}_${outputWidth}x${outputHeight}.jpg`;
                     a.click();
                     URL.revokeObjectURL(url);
-                });
+                }, 'image/jpeg', quality);
             });
 
-            alert(`成功分割成 ${splitBoxes.length} 个图片！`);
+            // 显示第一个分割框的输出尺寸作为参考
+            const firstBox = splitBoxes[0];
+            const firstBoxRatio = firstBox.width / firstBox.height;
+            const firstOutputHeight = Math.round(outputWidth / firstBoxRatio);
+            
+            alert(`成功分割成 ${splitBoxes.length} 个图片！\n输出宽度: ${outputWidth}px\n输出高度: 根据分割框比例自动计算\n质量: ${Math.round(quality * 100)}%`);
         }
 
         // 初始化比例选择
