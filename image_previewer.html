@@ -3,6 +3,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -40,10 +42,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
         .header h1 {
-            font-size: 28px;
+            font-size: 36.4px;
             font-weight: 600;
         }
 
@@ -76,17 +80,17 @@
         }
 
         .btn-primary {
-            background: #667eea;
+            background: #b496c8;
             color: white;
         }
 
         .btn-success {
-            background: #48bb78;
+            background: #b496c8;
             color: white;
         }
 
         .btn-info {
-            background: #4299e1;
+            background: #b496c8;
             color: white;
         }
 
@@ -96,8 +100,21 @@
         }
 
         .btn-danger {
-            background: #f56565;
+            background: #b496c8;
             color: white;
+        }
+
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5568d3;
+        }
+
+        .btn-split {
+            font-size: 16.8px;
         }
 
         .split-params {
@@ -313,41 +330,77 @@
                 margin: 10px 0;
             }
         }
+
+        /* 右下角状态窗口 */
+        .status-window {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 13px;
+            color: #666;
+            z-index: 1000;
+            max-width: 200px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .status-window.loading {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        /* 自由选项的深色背景样式 */
+        #ratioSelect option[value="custom"] {
+            background-color: #2d3748 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        
+        /* 为下拉框添加自定义样式 */
+        #ratioSelect.custom-selected {
+            background-color: #2d3748;
+            color: white;
+        }
+        
+        /* 强制设置自由选项样式 */
+        #ratioSelect option:last-child {
+            background-color: #2d3748 !important;
+            color: white !important;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>✂️ 多图分割器</h1>
-            <div style="font-size: 14px; opacity: 0.9;">网页版 v1.0</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h1 style="letter-spacing: 0.05em;"><span style="color: #ff4d4d;">i</span>mage</h1>
+            </div>
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <label for="fileInput" class="btn btn-primary">
+                    📁 选择
+                </label>
+                <input type="file" id="fileInput" accept="image/*" multiple>
+
+                <button class="btn btn-info" onclick="fitWindow()">
+                    🔲 全览
+                </button>
+
+                <button class="btn btn-success" onclick="toggleSplitLines()">
+                    📏 显示/隐藏
+                </button>
+
+                <button class="btn btn-danger" onclick="clearAll()">
+                    🗑️ 清空
+                </button>
+            </div>
         </div>
 
-        <div class="control-panel" style="display: flex; flex-wrap: nowrap; gap: 15px; align-items: center;">
-            <label for="fileInput" class="btn btn-primary">
-                📁 选择
-            </label>
-            <input type="file" id="fileInput" accept="image/*" multiple>
-
-            <button class="btn btn-info" onclick="fitWindow()">
-                🔲 全览
-            </button>
-
-            <button class="btn btn-success" onclick="toggleSplitLines()">
-                📏 显示/隐藏
-            </button>
-
-            <button class="btn btn-warning" onclick="executeSplit()">
-                ✂️ 分割
-            </button>
-
-            <button class="btn btn-danger" onclick="clearAll()">
-                🗑️ 清空
-            </button>
-
-            <button class="btn btn-warning" onclick="toggleManualMode()">
-                📐 手动比例
-            </button>
-
+        <div class="control-panel" style="display: flex; flex-wrap: nowrap; gap: 15px; align-items: center; justify-content: center;">
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
             <div class="param-group">
@@ -358,6 +411,7 @@
                     <option value="16:9">16:9</option>
                     <option value="3:4">3:4</option>
                     <option value="9:16">9:16</option>
+                    <option value="custom">自由</option>
                 </select>
             </div>
 
@@ -370,6 +424,12 @@
                 <label>高(px):</label>
                 <input type="number" id="heightInput" value="1200" min="10" onchange="onSizeChange()">
             </div>
+
+            <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
+
+            <button class="btn btn-secondary btn-split" onclick="executeSplit()">
+                分割
+            </button>
 
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
@@ -401,7 +461,7 @@
 
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
-            <div class="info-label" id="infoLabel" style="margin: 0; padding: 8px 12px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 13px; color: #666; white-space: nowrap;">
+            <div class="info-label" id="infoLabel" style="display: none;">
                 等待加载图片...
             </div>
         </div>
@@ -412,7 +472,7 @@
                 
                 <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                     <div class="upload-icon">📤</div>
-                    <h2>上传图片开始使用</h2>
+                    <h2>上传多张图片</h2>
                     <p>点击此处或拖拽图片文件到这里</p>
                     <p style="font-size: 12px; color: #a0aec0;">支持 JPG、PNG、GIF、WebP 等格式</p>
                 </div>
@@ -421,6 +481,11 @@
                     <button class="zoom-btn" onclick="zoomIn()" title="放大">+</button>
                     <button class="zoom-btn" onclick="zoomOut()" title="缩小">−</button>
                     <button class="zoom-btn" onclick="resetZoom()" title="重置">⟲</button>
+                </div>
+
+                <!-- 右下角状态窗口 -->
+                <div class="status-window" id="statusWindow">
+                    <div id="statusText">等待加载图片...</div>
                 </div>
 
             </div>
@@ -690,13 +755,13 @@
                 } else {
                     ctx.strokeStyle = '#CCCCCC'; // 默认状态用灰色
                 }
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 1;
                 ctx.strokeRect(x, y, width, height);
 
                 // 绘制角落手柄
                 const handleSize = 16;
                 const handleColor = '#000000';
-                const handleWidth = 5;
+                const handleWidth = 3;
 
                 ctx.strokeStyle = handleColor;
                 ctx.lineWidth = handleWidth;
@@ -773,10 +838,15 @@
         }
 
         function updateInfo() {
-            const infoLabel = document.getElementById('infoLabel');
+            const statusWindow = document.getElementById('statusWindow');
+            const statusText = document.getElementById('statusText');
             if (currentImage) {
                 const info = `尺寸: ${currentImage.width}x${currentImage.height} | 缩放: ${zoomFactor.toFixed(2)}x | 分割框数量: ${splitBoxes.length}`;
-                infoLabel.textContent = info;
+                statusText.textContent = info;
+                statusWindow.classList.remove('loading');
+            } else {
+                statusText.textContent = '等待加载图片...';
+                statusWindow.classList.add('loading');
             }
         }
 
@@ -1180,7 +1250,7 @@
                 width: width,
                 height: height,
                 ratio: ratio || (() => {
-                    // 自定义比例时，计算输入框的比例
+                    // 手动比例时，计算输入框的比例
                     const inputWidth = parseInt(document.getElementById('widthInput').value);
                     const inputHeight = parseInt(document.getElementById('heightInput').value);
                     return inputWidth / inputHeight;
@@ -1228,7 +1298,7 @@
                 width: width,
                 height: height,
                 ratio: ratio || (() => {
-                    // 自定义比例时，计算输入框的比例
+                    // 手动比例时，计算输入框的比例
                     const inputWidth = parseInt(document.getElementById('widthInput').value);
                     const inputHeight = parseInt(document.getElementById('heightInput').value);
                     return inputWidth / inputHeight;
@@ -1304,8 +1374,9 @@
 
             let newBox = { ...dragStart.box };
 
-            // 检查当前分割框的模式
-            const isManualMode = box.mode === 'custom';
+            // 检查当前是否为手动比例模式
+            const ratioSelect = document.getElementById('ratioSelect');
+            const isManualMode = ratioSelect.value === 'custom';
 
             if (isManualMode) {
                 // 手动模式：宽度最大为图片的100%，但可以缩小，可以调整高度
@@ -1351,14 +1422,14 @@
                         break;
                 }
             } else {
-                // 非手动模式：使用原来的逻辑
+                // 预设比例模式：使用原来的逻辑
                 // 使用当前分割框记录的比例
                 let currentRatio = box.ratio;
                 if (!currentRatio) {
                     // 如果没有记录比例，使用当前设置的比例
                     currentRatio = ratio;
                     if (!currentRatio) {
-                        // 自定义比例时，计算输入框的比例
+                        // 手动比例时，计算输入框的比例
                         const inputWidth = parseInt(document.getElementById('widthInput').value);
                         const inputHeight = parseInt(document.getElementById('heightInput').value);
                         currentRatio = inputWidth / inputHeight;
@@ -1428,11 +1499,18 @@
         }
 
         function getCurrentRatio() {
-            if (isManualMode) return null; // 手动模式时返回null
-            
             const ratioSelect = document.getElementById('ratioSelect');
-            const [w, h] = ratioSelect.value.split(':').map(Number);
-            return w / h;
+            
+            if (ratioSelect.value === 'custom') {
+                // 手动比例模式：根据输入框计算比例
+                const inputWidth = parseInt(document.getElementById('widthInput').value);
+                const inputHeight = parseInt(document.getElementById('heightInput').value);
+                return inputWidth / inputHeight;
+            } else {
+                // 预设比例模式
+                const [w, h] = ratioSelect.value.split(':').map(Number);
+                return w / h;
+            }
         }
 
         // 控制按钮
@@ -1501,26 +1579,40 @@
                 resizeHandle = null;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 uploadArea.classList.remove('hidden');
-                document.getElementById('infoLabel').textContent = '等待加载图片...';
+                updateInfo(); // 更新状态窗口显示
                 // 重置文件输入
                 document.getElementById('fileInput').value = '';
             }
         }
 
         function onRatioChange() {
-            if (isManualMode) return; // 手动模式时不执行自动计算
-            
             const ratioSelect = document.getElementById('ratioSelect');
             const widthInput = document.getElementById('widthInput');
             const heightInput = document.getElementById('heightInput');
-
-            const [w, h] = ratioSelect.value.split(':').map(Number);
-            const width = parseInt(widthInput.value);
-            heightInput.value = Math.floor(width * h / w);
+            
+            if (ratioSelect.value === 'custom') {
+                // 自由比例模式：启用高度输入框并添加深色样式
+                heightInput.disabled = false;
+                heightInput.style.backgroundColor = '#f7fafc';
+                heightInput.style.color = '#718096';
+                ratioSelect.classList.add('custom-selected');
+                return;
+            } else {
+                // 预设比例模式：禁用高度输入框并自动计算
+                heightInput.disabled = true;
+                heightInput.style.backgroundColor = '';
+                heightInput.style.color = '';
+                ratioSelect.classList.remove('custom-selected');
+                
+                const [w, h] = ratioSelect.value.split(':').map(Number);
+                const width = parseInt(widthInput.value);
+                heightInput.value = Math.floor(width * h / w);
+            }
         }
 
         function onSizeChange() {
-            if (!isManualMode) {
+            const ratioSelect = document.getElementById('ratioSelect');
+            if (ratioSelect.value !== 'custom') {
                 onRatioChange();
             }
         }
@@ -1549,35 +1641,6 @@
             updateOutputHeight();
         }
 
-        // 手动比例模式切换
-        let isManualMode = false;
-        
-        function toggleManualMode() {
-            isManualMode = !isManualMode;
-            const ratioSelect = document.getElementById('ratioSelect');
-            const widthInput = document.getElementById('widthInput');
-            const heightInput = document.getElementById('heightInput');
-            const manualButton = event.target;
-            
-            if (isManualMode) {
-                // 进入手动模式
-                ratioSelect.disabled = true;
-                heightInput.disabled = false;
-                manualButton.textContent = '📐 自动比例';
-                manualButton.classList.remove('btn-warning');
-                manualButton.classList.add('btn-success');
-                console.log('切换到手动比例模式');
-            } else {
-                // 退出手动模式
-                ratioSelect.disabled = false;
-                heightInput.disabled = true;
-                manualButton.textContent = '📐 手动比例';
-                manualButton.classList.remove('btn-success');
-                manualButton.classList.add('btn-warning');
-                onRatioChange(); // 重新计算比例
-                console.log('切换到自动比例模式');
-            }
-        }
 
         function executeSplit() {
             if (!currentImage || splitBoxes.length === 0) {
@@ -1633,6 +1696,29 @@
 
         // 初始化比例选择
         onRatioChange();
+        
+        // 为自由选项添加深色背景
+        function applyCustomOptionStyle() {
+            const ratioSelect = document.getElementById('ratioSelect');
+            const customOption = ratioSelect.querySelector('option[value="custom"]');
+            if (customOption) {
+                customOption.style.backgroundColor = '#2d3748';
+                customOption.style.color = 'white';
+                customOption.style.fontWeight = 'bold';
+            }
+        }
+        
+        // 页面加载完成后应用样式
+        document.addEventListener('DOMContentLoaded', function() {
+            applyCustomOptionStyle();
+        });
+        
+        // 如果DOM已经加载完成，立即应用样式
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyCustomOptionStyle);
+        } else {
+            applyCustomOptionStyle();
+        }
         
         // 添加全局鼠标事件监听器，处理在图片外松开鼠标的情况
         document.addEventListener('mouseup', function(e) {
