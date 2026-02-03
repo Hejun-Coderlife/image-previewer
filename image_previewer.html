@@ -6,11 +6,11 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多图分割器 - 网页版</title>
+    <title>Multi-Image Splitter - Web Version</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
     <style>
         * {
@@ -332,7 +332,7 @@
             }
         }
 
-        /* 右下角状态窗口 */
+        /* Status window at bottom-right */
         .status-window {
             position: fixed;
             bottom: 20px;
@@ -354,20 +354,20 @@
             color: #667eea;
         }
 
-        /* 自由选项的深色背景样式 */
+        /* Dark background style for custom option */
         #ratioSelect option[value="custom"] {
             background-color: #2d3748 !important;
             color: white !important;
             font-weight: bold;
         }
         
-        /* 为下拉框添加自定义样式 */
+        /* Custom style for dropdown */
         #ratioSelect.custom-selected {
             background-color: #2d3748;
             color: white;
         }
         
-        /* 强制设置自由选项样式 */
+        /* Force custom option style */
         #ratioSelect option:last-child {
             background-color: #2d3748 !important;
             color: white !important;
@@ -383,20 +383,20 @@
             </div>
             <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                 <label for="fileInput" class="btn btn-primary">
-                    📁 选择
+                    📁 Select
                 </label>
                 <input type="file" id="fileInput" accept="image/*" multiple>
 
                 <button class="btn btn-info" onclick="fitWindow()">
-                    🔲 全览
+                    🔲 Fit to Window
                 </button>
 
                 <button class="btn btn-success" onclick="toggleSplitLines()">
-                    📏 显示/隐藏
+                    📏 Show/Hide
                 </button>
 
                 <button class="btn btn-danger" onclick="clearAll()">
-                    🗑️ 清空
+                    🗑️ Clear
                 </button>
             </div>
         </div>
@@ -405,65 +405,65 @@
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
             <div class="param-group">
-                <label>比例:</label>
+                <label>Ratio:</label>
                 <select id="ratioSelect" onchange="onRatioChange()">
                     <option value="1:1">1:1</option>
                     <option value="4:3">4:3</option>
                     <option value="16:9">16:9</option>
                     <option value="3:4">3:4</option>
                     <option value="9:16">9:16</option>
-                    <option value="custom">自由</option>
+                    <option value="custom">Custom</option>
                 </select>
             </div>
 
             <div class="param-group">
-                <label>宽(px):</label>
+                <label>Width(px):</label>
                 <input type="number" id="widthInput" value="1200" min="10" onchange="onSizeChange()">
             </div>
 
             <div class="param-group">
-                <label>高(px):</label>
+                <label>Height(px):</label>
                 <input type="number" id="heightInput" value="1200" min="10" onchange="onSizeChange()">
             </div>
 
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
             <button class="btn btn-secondary btn-split" onclick="executeSplit()">
-                分割
+                Split
             </button>
 
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
             <div class="param-group">
-                <label style="color: #2b6cb0; font-weight: 600;">输出宽(px):</label>
+                <label style="color: #2b6cb0; font-weight: 600;">Output Width(px):</label>
                 <input type="number" id="outputWidthInput" value="1200" min="10" onchange="updateOutputHeight()" style="border-color: #4299e1;">
             </div>
 
             <div class="param-group">
-                <label style="color: #2b6cb0; font-weight: 600;">输出高(px):</label>
+                <label style="color: #2b6cb0; font-weight: 600;">Output Height(px):</label>
                 <input type="number" id="outputHeightInput" value="1200" min="10" readonly style="border-color: #4299e1; background-color: #f7fafc; color: #718096;">
             </div>
 
             <div class="param-group">
-                <label style="color: #2b6cb0; font-weight: 600;">质量:</label>
+                <label style="color: #2b6cb0; font-weight: 600;">Quality:</label>
                 <select id="qualitySelect" style="border-color: #4299e1;">
-                    <option value="0.1">最低 (10%)</option>
-                    <option value="0.2">很低 (20%)</option>
-                    <option value="0.3">低 (30%)</option>
-                    <option value="0.4">较低 (40%)</option>
-                    <option value="0.5">中等 (50%)</option>
-                    <option value="0.6">较好 (60%)</option>
-                    <option value="0.7">良好 (70%)</option>
-                    <option value="0.8">标准 (80%)</option>
-                    <option value="0.9">高质量 (90%)</option>
-                    <option value="1.0" selected>最高 (100%)</option>
+                    <option value="0.1">Lowest (10%)</option>
+                    <option value="0.2">Very Low (20%)</option>
+                    <option value="0.3">Low (30%)</option>
+                    <option value="0.4">Below Average (40%)</option>
+                    <option value="0.5">Medium (50%)</option>
+                    <option value="0.6">Good (60%)</option>
+                    <option value="0.7">Better (70%)</option>
+                    <option value="0.8">Standard (80%)</option>
+                    <option value="0.9">High Quality (90%)</option>
+                    <option value="1.0" selected>Highest (100%)</option>
                 </select>
             </div>
 
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
             <div class="info-label" id="infoLabel" style="display: none;">
-                等待加载图片...
+                Waiting to load image...
             </div>
         </div>
 
@@ -473,20 +473,20 @@
                 
                 <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                     <div class="upload-icon">📤</div>
-                    <h2>上传多张图片</h2>
-                    <p>点击此处或拖拽图片文件到这里</p>
-                    <p style="font-size: 12px; color: #a0aec0;">支持 JPG、PNG、GIF、WebP 等格式</p>
+                    <h2>Upload multiple images</h2>
+                    <p>Click here or drag image files here</p>
+                    <p style="font-size: 12px; color: #a0aec0;">Supports JPG, PNG, GIF, WebP and other formats</p>
                 </div>
 
                 <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()" title="放大">+</button>
-                    <button class="zoom-btn" onclick="zoomOut()" title="缩小">−</button>
-                    <button class="zoom-btn" onclick="resetZoom()" title="重置">⟲</button>
+                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">+</button>
+                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">−</button>
+                    <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
                 </div>
 
-                <!-- 右下角状态窗口 -->
+                <!-- Status window at bottom-right -->
                 <div class="status-window" id="statusWindow">
-                    <div id="statusText">等待加载图片...</div>
+                    <div id="statusText">Waiting to load image...</div>
                 </div>
 
             </div>
@@ -494,7 +494,7 @@
     </div>
 
     <script>
-        // 全局变量
+        // Global variables
         let canvas = document.getElementById('canvas');
         let ctx = canvas.getContext('2d');
         let currentImage = null;
@@ -510,34 +510,34 @@
         let dragStart = { x: 0, y: 0 };
         let imagePosition = { x: 0, y: 0 };
         let imageSize = { width: 0, height: 0 };
-        let isResizeLocked = false; // 调整大小是否被锁定
-        let isCurrentlyResizing = false; // 是否正在拖动调整大小
+        let isResizeLocked = false; // Whether resize is locked
+        let isCurrentlyResizing = false; // Whether currently dragging to resize
 
-        // 初始化
+        // Initialize
         const fileInput = document.getElementById('fileInput');
         if (fileInput) {
             fileInput.addEventListener('change', handleFileSelect);
-            console.log('文件输入事件监听器已绑定');
+            console.log('File input event listener bound');
         } else {
-            console.error('找不到文件输入元素');
+            console.error('File input element not found');
         }
         
-        // 绑定鼠标事件监听器
+        // Bind mouse event listeners
         canvas.addEventListener('mousedown', onCanvasMouseDown);
         canvas.addEventListener('mousemove', onCanvasMouseMove);
         canvas.addEventListener('mouseup', onCanvasMouseUp);
         canvas.addEventListener('dblclick', onCanvasDoubleClick);
         canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
-        console.log('鼠标事件监听器已绑定');
+        console.log('Mouse event listeners bound');
         
-        // 添加容器滚动事件监听
+        // Add container scroll event listener
         canvasContainer.addEventListener('scroll', function() {
-            // 防止滚动超出合理范围
+            // Prevent scroll from going out of reasonable range
             if (this.scrollTop < 0) this.scrollTop = 0;
             if (this.scrollLeft < 0) this.scrollLeft = 0;
         });
         
-        // 拖拽上传
+        // Drag and drop upload
         const uploadArea = document.getElementById('uploadArea');
         
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -552,76 +552,76 @@
         canvasContainer.addEventListener('drop', handleDrop, false);
 
         function handleDrop(e) {
-            console.log('拖拽文件事件触发');
+            console.log('Drop file event triggered');
             const dt = e.dataTransfer;
             const files = dt.files;
-            console.log('拖拽的文件数量:', files.length);
+            console.log('Dropped file count:', files.length);
             handleFiles(files);
         }
 
-        // 文件选择处理
+        // File selection handler
         function handleFileSelect(e) {
-            console.log('文件选择事件触发');
+            console.log('File selection event triggered');
             const files = e.target.files;
-            console.log('选择的文件数量:', files.length);
+            console.log('Selected file count:', files.length);
             if (files.length > 0) {
-                console.log('第一个文件名:', files[0].name);
-                console.log('第一个文件类型:', files[0].type);
+                console.log('First file name:', files[0].name);
+                console.log('First file type:', files[0].type);
             }
             handleFiles(files);
         }
 
         function handleFiles(files) {
-            console.log('handleFiles 被调用，文件数量:', files.length);
+            console.log('handleFiles called, file count:', files.length);
             if (files.length === 0) {
-                console.log('没有文件，退出');
+                console.log('No files, exit');
                 return;
             }
 
             if (files.length === 1) {
-                console.log('加载单张图片:', files[0].name);
+                console.log('Loading single image:', files[0].name);
                 loadImage(files[0]);
             } else {
-                console.log('拼接多张图片，数量:', files.length);
-                // 多张图片拼接
+                console.log('Concatenating multiple images, count:', files.length);
+                // Concatenate multiple images
                 concatImages(files);
             }
 
             uploadArea.classList.add('hidden');
-            console.log('隐藏上传区域');
+            console.log('Hide upload area');
         }
 
         function loadImage(file) {
-            console.log('开始加载图片:', file.name);
+            console.log('Start loading image:', file.name);
             const reader = new FileReader();
             
             reader.onload = function(e) {
-                console.log('FileReader 读取完成');
+                console.log('FileReader read complete');
                 const img = new Image();
                 
                 img.onload = function() {
-                    console.log('图片加载成功，尺寸:', img.width, 'x', img.height);
+                    console.log('Image loaded successfully, size:', img.width, 'x', img.height);
                     currentImage = img;
                     splitBoxes = [];
-                    // 默认添加一个分割框
+                    // Add a default split box
                     addDefaultSplitBox();
                     showSplitLines = true;
                     fitWindow();
                     updateInfo();
-                    console.log('图片显示完成');
+                    console.log('Image display complete');
                 };
                 
                 img.onerror = function() {
-                    console.error('图片加载失败');
-                    alert('图片加载失败，请检查文件格式');
+                    console.error('Image failed to load');
+                    alert('Image failed to load, please check file format');
                 };
                 
                 img.src = e.target.result;
             };
             
             reader.onerror = function() {
-                console.error('文件读取失败');
-                alert('文件读取失败');
+                console.error('File read failed');
+                alert('File read failed');
             };
             
             reader.readAsDataURL(file);
@@ -641,7 +641,7 @@
                         loadedCount++;
 
                         if (loadedCount === files.length) {
-                            // 所有图片加载完成，开始拼接
+                            // All images loaded, start concatenating
                             let totalHeight = 0;
                             let resizedImages = [];
 
@@ -652,7 +652,7 @@
                                 totalHeight += newHeight;
                             });
 
-                            // 创建大画布
+                            // Create large canvas
                             const tempCanvas = document.createElement('canvas');
                             tempCanvas.width = targetWidth;
                             tempCanvas.height = totalHeight;
@@ -664,12 +664,12 @@
                                 yOffset += newHeight;
                             });
 
-                            // 将拼接结果作为新图片
+                            // Use concatenated result as new image
                             const concatImg = new Image();
                             concatImg.onload = function() {
                                 currentImage = concatImg;
                                 splitBoxes = [];
-                                // 默认添加一个分割框
+                                // Add a default split box
                                 addDefaultSplitBox();
                                 showSplitLines = true;
                                 fitWindow();
@@ -697,7 +697,7 @@
 
             updateDisplay();
             
-            // 适应窗口后，确保水平居中，垂直滚动到顶部
+            // After fitting window, ensure horizontal center, scroll to top
             container.scrollTop = 0;
             if (canvas.width > container.clientWidth) {
                 container.scrollLeft = (canvas.width - container.clientWidth) / 2;
@@ -712,27 +712,27 @@
             const displayWidth = currentImage.width * zoomFactor;
             const displayHeight = currentImage.height * zoomFactor;
 
-            // 确保canvas有最小尺寸，避免滚动问题
+            // Ensure canvas has minimum size to avoid scroll issues
             canvas.width = Math.max(displayWidth, 100);
             canvas.height = Math.max(displayHeight, 100);
 
             imageSize.width = displayWidth;
             imageSize.height = displayHeight;
 
-            // 清空画布
+            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 绘制图片
+            // Draw image
             ctx.drawImage(currentImage, 0, 0, displayWidth, displayHeight);
 
-            // 绘制分割框
+            // Draw split boxes
             if (showSplitLines) {
                 drawSplitBoxes();
             }
 
             updateInfo();
             
-            // 只有在需要时才确保滚动位置
+            // Only ensure scroll position when needed
             if (shouldEnsureVisible) {
                 ensureImageVisible();
             }
@@ -748,18 +748,18 @@
                 const width = box.width * scaleX;
                 const height = box.height * scaleY;
 
-                // 绘制框 - 根据状态选择不同颜色
+                // Draw box - different color by state
                 if (isResizeLocked && selectedBoxIndex === index) {
-                    ctx.strokeStyle = '#ff6b6b'; // 锁定状态用红色
+                    ctx.strokeStyle = '#ff6b6b'; // Red for locked
                 } else if (index === selectedBoxIndex) {
-                    ctx.strokeStyle = '#667eea'; // 选中状态用蓝色
+                    ctx.strokeStyle = '#667eea'; // Blue for selected
                 } else {
-                    ctx.strokeStyle = '#CCCCCC'; // 默认状态用灰色
+                    ctx.strokeStyle = '#CCCCCC'; // Gray for default
                 }
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x, y, width, height);
 
-                // 绘制角落手柄
+                // Draw corner handles
                 const handleSize = 16;
                 const handleColor = '#000000';
                 const handleWidth = 3;
@@ -768,7 +768,7 @@
                 ctx.lineWidth = handleWidth;
                 ctx.lineCap = 'square';
 
-                // 左上角
+                // Top-left corner
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + handleSize, y);
@@ -778,7 +778,7 @@
                 ctx.lineTo(x, y + handleSize);
                 ctx.stroke();
 
-                // 右上角
+                // Top-right corner
                 ctx.beginPath();
                 ctx.moveTo(x + width, y);
                 ctx.lineTo(x + width - handleSize, y);
@@ -788,7 +788,7 @@
                 ctx.lineTo(x + width, y + handleSize);
                 ctx.stroke();
 
-                // 左下角
+                // Bottom-left corner
                 ctx.beginPath();
                 ctx.moveTo(x, y + height);
                 ctx.lineTo(x + handleSize, y + height);
@@ -798,7 +798,7 @@
                 ctx.lineTo(x, y + height - handleSize);
                 ctx.stroke();
 
-                // 右下角
+                // Bottom-right corner
                 ctx.beginPath();
                 ctx.moveTo(x + width, y + height);
                 ctx.lineTo(x + width - handleSize, y + height);
@@ -808,29 +808,29 @@
                 ctx.lineTo(x + width, y + height - handleSize);
                 ctx.stroke();
 
-                // 边缘中点手柄
+                // Edge midpoint handles
                 const edgeHandleSize = 16;
                 ctx.lineWidth = handleWidth;
 
-                // 上中
+                // Top center
                 ctx.beginPath();
                 ctx.moveTo(x + width / 2 - edgeHandleSize / 2, y);
                 ctx.lineTo(x + width / 2 + edgeHandleSize / 2, y);
                 ctx.stroke();
 
-                // 下中
+                // Bottom center
                 ctx.beginPath();
                 ctx.moveTo(x + width / 2 - edgeHandleSize / 2, y + height);
                 ctx.lineTo(x + width / 2 + edgeHandleSize / 2, y + height);
                 ctx.stroke();
 
-                // 左中
+                // Left center
                 ctx.beginPath();
                 ctx.moveTo(x, y + height / 2 - edgeHandleSize / 2);
                 ctx.lineTo(x, y + height / 2 + edgeHandleSize / 2);
                 ctx.stroke();
 
-                // 右中
+                // Right center
                 ctx.beginPath();
                 ctx.moveTo(x + width, y + height / 2 - edgeHandleSize / 2);
                 ctx.lineTo(x + width, y + height / 2 + edgeHandleSize / 2);
@@ -842,33 +842,33 @@
             const statusWindow = document.getElementById('statusWindow');
             const statusText = document.getElementById('statusText');
             if (currentImage) {
-                const info = `尺寸: ${currentImage.width}x${currentImage.height} | 缩放: ${zoomFactor.toFixed(2)}x | 分割框数量: ${splitBoxes.length}`;
+                const info = `Size: ${currentImage.width}x${currentImage.height} | Zoom: ${zoomFactor.toFixed(2)}x | Split boxes: ${splitBoxes.length}`;
                 statusText.textContent = info;
                 statusWindow.classList.remove('loading');
             } else {
-                statusText.textContent = '等待加载图片...';
+                statusText.textContent = 'Waiting to load image...';
                 statusWindow.classList.add('loading');
             }
         }
 
-        // 新增函数：确保图片可见
+        // Ensure image is visible
         function ensureImageVisible() {
             const container = canvasContainer;
             
-            // 水平居中：如果图片宽度超出容器，计算水平居中位置
+            // Horizontal center: if image width exceeds container, compute center
             if (canvas.width > container.clientWidth) {
                 const centerX = Math.max(0, (canvas.width - container.clientWidth) / 2);
                 container.scrollLeft = centerX;
             } else {
-                // 图片宽度不超出容器时，不需要水平滚动
+                // When image width does not exceed container, no horizontal scroll
                 container.scrollLeft = 0;
             }
             
-            // 垂直方向：滚动到图片顶部，确保能看到图片的最上方
+            // Vertical: scroll to image top so top is visible
             container.scrollTop = 0;
         }
 
-        // 画布事件处理
+        // Canvas event handlers
         canvas.addEventListener('mousedown', onCanvasMouseDown);
         canvas.addEventListener('mousemove', onCanvasMouseMove);
         canvas.addEventListener('mouseup', onCanvasMouseUp);
@@ -885,11 +885,11 @@
             const scaleX = imageSize.width / currentImage.width;
             const scaleY = imageSize.height / currentImage.height;
 
-            // 计算缩放比例 - 使用zoomFactor而不是imageSize
+            // Compute scale - use zoomFactor not imageSize
             const actualScaleX = zoomFactor;
             const actualScaleY = zoomFactor;
 
-            console.log('单击事件调试信息:', {
+            console.log('Click event debug:', {
                 clickX: x,
                 clickY: y,
                 canvasWidth: canvas.width,
@@ -909,35 +909,35 @@
                 scrollPosition: { scrollTop: canvasContainer.scrollTop, scrollLeft: canvasContainer.scrollLeft }
             });
 
-            // 注意：锁定逻辑已移到 onCanvasMouseUp 中，这里不再需要处理
+            // Note: lock logic moved to onCanvasMouseUp
 
-            // 检查是否点击手柄
+            // Check if clicking handle
             const handleCheck = checkHandleHit(x, y, actualScaleX, actualScaleY);
             if (handleCheck) {
-                console.log('点击手柄时的状态:', {
+                console.log('Handle click state:', {
                     isResizing: isResizing,
                     isCurrentlyResizing: isCurrentlyResizing,
                     isResizeLocked: isResizeLocked
                 });
                 
-                // 检查该分割框是否被锁定，如果锁定则解除锁定
+                // If this split box is locked, unlock and start resizing
                 const targetBoxIndex = handleCheck.index;
                 if (isResizeLocked && selectedBoxIndex === targetBoxIndex) {
-                    console.log('分割框已锁定，点击手柄解除锁定并开始调整大小');
-                    isResizeLocked = false; // 解除锁定
+                    console.log('Split box locked, click handle to unlock and resize');
+                    isResizeLocked = false; // Unlock
                 }
                 
                 isResizing = true;
-                isCurrentlyResizing = true; // 开始拖动调整大小
-                isResizeLocked = false; // 开始调整大小时解除锁定
+                isCurrentlyResizing = true; // Start drag resize
+                isResizeLocked = false; // Unlock when starting resize
                 resizeHandle = handleCheck.handle;
                 selectedBoxIndex = targetBoxIndex;
                 dragStart = { x, y, box: { ...splitBoxes[selectedBoxIndex] } };
-                console.log('开始调整分割框大小');
+                console.log('Start resizing split box');
                 return;
             }
 
-            // 检查是否点击分割框
+            // Check if clicking split box
             for (let i = splitBoxes.length - 1; i >= 0; i--) {
                 const box = splitBoxes[i];
                 const boxX = box.x * actualScaleX;
@@ -949,49 +949,49 @@
                     isDragging = true;
                     selectedBoxIndex = i;
                     dragStart = { x, y, box: { ...box } };
-                    console.log('开始拖动分割框');
+                    console.log('Start dragging split box');
                     return;
                 }
             }
 
-            // 如果正在拖动，点击任意位置停止拖动
+            // If dragging, click anywhere to stop
             if (isDragging) {
-                console.log('检测到isDragging为true，停止拖动分割框');
+                console.log('isDragging true, stop dragging split box');
                 isDragging = false;
-                console.log('停止拖动分割框');
-                updateDisplay(false); // 停止拖动时不跳转滚动位置
+                console.log('Stop dragging split box');
+                updateDisplay(false); // Do not jump scroll when stopping drag
                 return;
             }
 
-            // 添加新分割框
-            console.log('点击位置:', x, y);
+            // Add new split box
+            console.log('Click position:', x, y);
             console.log('showSplitLines:', showSplitLines);
-            console.log('准备添加新分割框，当前滚动位置:', {
+            console.log('Preparing to add split box, scroll position:', {
                 scrollTop: canvasContainer.scrollTop,
                 scrollLeft: canvasContainer.scrollLeft
             });
-            console.log('当前状态:', {
+            console.log('Current state:', {
                 selectedBoxIndex: selectedBoxIndex,
                 isDragging: isDragging,
                 isResizing: isResizing,
                 isResizeLocked: isResizeLocked
             });
             
-            // 强制重置所有状态，确保能够添加分割框
+            // Force reset all state so we can add split box
             isDragging = false;
             isResizing = false;
             isCurrentlyResizing = false;
             isResizeLocked = false;
             resizeHandle = null;
-            console.log('强制重置状态后:', {
+            console.log('After force reset:', {
                 isDragging: isDragging,
                 isResizing: isResizing,
                 isResizeLocked: isResizeLocked
             });
             
-            console.log('即将调用addSplitBox函数');
+            console.log('About to call addSplitBox');
             addSplitBox(x, y);
-            console.log('addSplitBox函数调用完成');
+            console.log('addSplitBox call complete');
         }
 
         function checkHandleHit(x, y, scaleX, scaleY) {
@@ -1032,18 +1032,18 @@
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            // 调整大小：只有在未锁定状态下才允许
+            // Resize: only when not locked
             if (isCurrentlyResizing && selectedBoxIndex !== null && !isResizeLocked) {
                 resizeSplitBox(x, y);
-                updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
+                updateDisplay(false); // Do not jump scroll when drag/resize
             }
-            // 拖动：无论是否锁定都允许
+            // Drag: allowed whether locked or not
             else if (isDragging && selectedBoxIndex !== null) {
                 moveSplitBox(x, y);
-                updateDisplay(false); // 拖动/调整大小时不跳转滚动位置
+                updateDisplay(false); // Do not jump scroll when drag/resize
             }
 
-            // 更新光标样式
+            // Update cursor style
             updateCursor(x, y);
         }
 
@@ -1053,16 +1053,16 @@
                 return;
             }
 
-            // 计算缩放比例 - 使用zoomFactor而不是imageSize
+            // Compute scale - use zoomFactor not imageSize
             const actualScaleX = zoomFactor;
             const actualScaleY = zoomFactor;
 
             const handleCheck = checkHandleHit(x, y, actualScaleX, actualScaleY);
             if (handleCheck) {
-                // 检查该分割框是否被锁定
+                // Check if this split box is locked
                 const targetBoxIndex = handleCheck.index;
                 if (isResizeLocked && selectedBoxIndex === targetBoxIndex) {
-                    canvas.style.cursor = 'not-allowed'; // 锁定的分割框显示禁止光标
+                    canvas.style.cursor = 'not-allowed'; // Locked box shows forbidden cursor
                 } else {
                     const cursors = {
                         'nw': 'nw-resize',
@@ -1079,7 +1079,7 @@
                 return;
             }
 
-            // 检查是否在分割框内
+            // Check if inside split box
             for (let i = splitBoxes.length - 1; i >= 0; i--) {
                 const box = splitBoxes[i];
                 const boxX = box.x * actualScaleX;
@@ -1088,7 +1088,7 @@
                 const boxHeight = box.height * actualScaleY;
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
-                    // 锁定的分割框仍然可以拖动，显示移动光标
+                    // Locked box can still be dragged, show move cursor
                     canvas.style.cursor = 'move';
                     return;
                 }
@@ -1098,14 +1098,14 @@
         }
 
         function onCanvasMouseUp(e) {
-            // 停止拖动操作
+            // Stop drag
             if (isDragging) {
                 isDragging = false;
-                console.log('鼠标松开，停止拖动分割框');
+                console.log('Mouse up, stop dragging split box');
             }
-            // 停止拖动调整大小，并立即锁定分割框
+            // Stop resize drag and lock split box
             if (isCurrentlyResizing) {
-                console.log('鼠标松开前的状态:', {
+                console.log('State before mouse up:', {
                     isResizing: isResizing,
                     isCurrentlyResizing: isCurrentlyResizing,
                     isResizeLocked: isResizeLocked
@@ -1114,19 +1114,19 @@
                 isResizing = false;
                 isResizeLocked = true;
                 resizeHandle = null;
-                console.log('鼠标松开后的状态:', {
+                console.log('State after mouse up:', {
                     isResizing: isResizing,
                     isCurrentlyResizing: isCurrentlyResizing,
                     isResizeLocked: isResizeLocked
                 });
-                console.log('鼠标松开，停止拖动调整大小，立即锁定分割框');
-                updateDisplay(false); // 锁定时不跳转滚动位置
+                console.log('Mouse up, stop resize drag, lock split box');
+                updateDisplay(false); // Do not jump scroll when locking
             }
         }
 
         function onCanvasDoubleClick(e) {
-            e.preventDefault(); // 阻止默认行为，防止页面滚动
-            e.stopPropagation(); // 阻止事件冒泡
+            e.preventDefault(); // Prevent default, avoid page scroll
+            e.stopPropagation(); // Stop propagation
             
             if (!currentImage || splitBoxes.length === 0) return;
 
@@ -1134,11 +1134,11 @@
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            // 计算缩放比例 - 使用zoomFactor而不是imageSize
+            // Compute scale - use zoomFactor not imageSize
             const actualScaleX = zoomFactor;
             const actualScaleY = zoomFactor;
 
-            console.log('双击事件调试信息:', {
+            console.log('Double-click event debug:', {
                 clickX: x,
                 clickY: y,
                 canvasWidth: canvas.width,
@@ -1151,7 +1151,7 @@
                 splitBoxCount: splitBoxes.length
             });
 
-            // 检查是否双击分割框
+            // Check if double-clicking split box
             for (let i = splitBoxes.length - 1; i >= 0; i--) {
                 const box = splitBoxes[i];
                 const boxX = box.x * actualScaleX;
@@ -1159,41 +1159,41 @@
                 const boxWidth = box.width * actualScaleX;
                 const boxHeight = box.height * actualScaleY;
 
-                console.log(`检查分割框 ${i}:`, {
+                console.log(`Check split box ${i}:`, {
                     boxX, boxY, boxWidth, boxHeight,
                     clickX: x, clickY: y,
                     inBox: x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight
                 });
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
-                    console.log('双击删除前状态:');
-                    console.log('- 要删除的分割框索引:', i);
-                    console.log('- 删除前分割框数量:', splitBoxes.length);
-                    console.log('- 删除前分割框列表:', splitBoxes);
+                    console.log('Before double-click delete:');
+                    console.log('- Split box index to delete:', i);
+                    console.log('- Split box count before delete:', splitBoxes.length);
+                    console.log('- Split boxes before delete:', splitBoxes);
                     
                     splitBoxes.splice(i, 1);
                     selectedBoxIndex = null;
-                    isResizeLocked = false; // 重置锁定状态
-                    isDragging = false; // 重置拖动状态
-                    isResizing = false; // 重置调整大小状态
-                    isCurrentlyResizing = false; // 重置拖动调整大小状态
-                    resizeHandle = null; // 重置手柄状态
+                    isResizeLocked = false; // Reset lock
+                    isDragging = false; // Reset drag
+                    isResizing = false; // Reset resize
+                    isCurrentlyResizing = false; // Reset resize drag
+                    resizeHandle = null; // Reset handle
                     
-                    console.log(`删除分割框 ${i}，剩余数量:`, splitBoxes.length);
-                    console.log('- 删除后分割框列表:', splitBoxes);
-                    console.log('删除后重置的状态:', {
+                    console.log(`Deleted split box ${i}, remaining:`, splitBoxes.length);
+                    console.log('- Split boxes after delete:', splitBoxes);
+                    console.log('State after delete reset:', {
                         selectedBoxIndex: selectedBoxIndex,
                         isDragging: isDragging,
                         isResizing: isResizing,
                         isResizeLocked: isResizeLocked,
                         resizeHandle: resizeHandle
                     });
-                    updateDisplay(false); // 删除时不调用滚动函数，保持当前位置
+                    updateDisplay(false); // Do not jump scroll when deleting
                     return;
                 }
             }
             
-            console.log('双击位置不在任何分割框内');
+            console.log('Double-click not inside any split box');
         }
 
         function onCanvasWheel(e) {
@@ -1201,7 +1201,7 @@
             if (!currentImage) return;
 
             const delta = e.deltaY;
-            const zoomSpeed = 0.1;
+            const zoomSpeed = 0.05;  // or 0.03 for even slower
 
             if (delta < 0) {
                 zoomFactor = Math.min(zoomFactor * (1 + zoomSpeed), maxZoom);
@@ -1211,7 +1211,7 @@
 
             updateDisplay();
             
-            // 缩放后保持水平居中，垂直方向保持当前滚动位置
+            // After zoom keep horizontal center, keep current vertical scroll
             const container = canvasContainer;
             if (canvas.width > container.clientWidth) {
                 container.scrollLeft = (canvas.width - container.clientWidth) / 2;
@@ -1223,25 +1223,25 @@
         function addDefaultSplitBox() {
             if (!currentImage) return;
             
-            // 默认分割框宽度与图片宽度100%对齐，高度根据比例计算
+            // Default split box: width 100% of image, height by ratio
             const width = currentImage.width;
             const ratio = getCurrentRatio();
             const ratioSelect = document.getElementById('ratioSelect');
             let height;
             
             if (ratio) {
-                // 根据比例计算高度
+                // Compute height from ratio
                 height = Math.floor(width / ratio);
             } else {
-                // 自定义比例时，根据输入框的宽高比计算高度
+                // Custom ratio: compute height from width/height inputs
                 const inputWidth = parseInt(document.getElementById('widthInput').value);
                 const inputHeight = parseInt(document.getElementById('heightInput').value);
                 const inputRatio = inputWidth / inputHeight;
                 height = Math.floor(width / inputRatio);
-                console.log('自定义比例计算:', { inputWidth, inputHeight, inputRatio, width, height });
+                console.log('Custom ratio compute:', { inputWidth, inputHeight, inputRatio, width, height });
             }
 
-            // 默认放在图片顶部，宽度与图片完全对齐
+            // Default at image top, width aligned with image
             const defaultX = 0;
             const defaultY = 0;
 
@@ -1251,45 +1251,45 @@
                 width: width,
                 height: height,
                 ratio: ratio || (() => {
-                    // 手动比例时，计算输入框的比例
+                    // Custom ratio: compute from inputs
                     const inputWidth = parseInt(document.getElementById('widthInput').value);
                     const inputHeight = parseInt(document.getElementById('heightInput').value);
                     return inputWidth / inputHeight;
                 })(),
-                mode: ratioSelect.value // 记录创建时的模式
+                mode: ratioSelect.value // Mode when created
             };
 
             splitBoxes.push(defaultBox);
             selectedBoxIndex = 0;
-            isResizeLocked = false; // 新添加的分割框默认未锁定
-            updateOutputHeight(); // 自动更新输出高度
-            console.log('添加默认分割框:', defaultBox);
+            isResizeLocked = false; // New box not locked by default
+            updateOutputHeight(); // Auto update output height
+            console.log('Added default split box:', defaultBox);
         }
 
         function addSplitBox(x, y) {
-            console.log('addSplitBox函数被调用，参数:', { x, y });
+            console.log('addSplitBox called with:', { x, y });
             const scaleX = imageSize.width / currentImage.width;
             const scaleY = imageSize.height / currentImage.height;
-            const actualScaleY = zoomFactor; // 修复：定义actualScaleY
+            const actualScaleY = zoomFactor; // Define actualScaleY
 
-            // 分割框宽度与图片宽度100%对齐，高度根据比例计算
+            // Split box width 100% of image, height by ratio
             const width = currentImage.width;
             const ratio = getCurrentRatio();
             const ratioSelect = document.getElementById('ratioSelect');
             let height;
             
             if (ratio) {
-                // 根据比例计算高度
+                // Compute height from ratio
                 height = Math.floor(width / ratio);
             } else {
-                // 自定义比例时，根据输入框的宽高比计算高度
+                // Custom ratio: compute height from width/height inputs
                 const inputWidth = parseInt(document.getElementById('widthInput').value);
                 const inputHeight = parseInt(document.getElementById('heightInput').value);
                 const inputRatio = inputWidth / inputHeight;
                 height = Math.floor(width / inputRatio);
             }
 
-            // 宽度与图片完全对齐，Y坐标跟随点击位置
+            // Width aligned with image, Y follows click
             const originalX = 0;
             const originalY = Math.max(0, Math.min(y / actualScaleY, currentImage.height - height));
 
@@ -1299,47 +1299,47 @@
                 width: width,
                 height: height,
                 ratio: ratio || (() => {
-                    // 手动比例时，计算输入框的比例
+                    // Custom ratio: compute from inputs
                     const inputWidth = parseInt(document.getElementById('widthInput').value);
                     const inputHeight = parseInt(document.getElementById('heightInput').value);
                     return inputWidth / inputHeight;
                 })(),
-                mode: ratioSelect.value // 记录创建时的模式
+                mode: ratioSelect.value // Mode when created
             };
 
-            console.log('尝试添加分割框:', newBox);
-            console.log('当前分割框数量:', splitBoxes.length);
+            console.log('Try add split box:', newBox);
+            console.log('Current split box count:', splitBoxes.length);
 
-            // 检查重叠
-            console.log('检查重叠前的状态:');
-            console.log('- 当前分割框数量:', splitBoxes.length);
-            console.log('- 当前分割框列表:', splitBoxes);
-            console.log('- 新分割框:', newBox);
+            // Check overlap
+            console.log('Before overlap check:');
+            console.log('- Current split box count:', splitBoxes.length);
+            console.log('- Current split boxes:', splitBoxes);
+            console.log('- New split box:', newBox);
             
             const isOverlap = isOverlapping(newBox);
-            console.log('- 是否重叠:', isOverlap);
+            console.log('- Overlap:', isOverlap);
             
             if (!isOverlap) {
                 splitBoxes.push(newBox);
                 selectedBoxIndex = splitBoxes.length - 1;
-                isResizeLocked = false; // 新添加的分割框默认未锁定
-                isDragging = false; // 重置拖动状态
-                isResizing = false; // 重置调整大小状态
-                isCurrentlyResizing = false; // 重置拖动调整大小状态
-                resizeHandle = null; // 重置手柄状态
-                updateOutputHeight(); // 自动更新输出高度
-                console.log('成功添加分割框，新数量:', splitBoxes.length);
-                console.log('添加分割框前滚动位置:', {
+                isResizeLocked = false; // New box not locked by default
+                isDragging = false; // Reset drag
+                isResizing = false; // Reset resize
+                isCurrentlyResizing = false; // Reset resize drag
+                resizeHandle = null; // Reset handle
+                updateOutputHeight(); // Auto update output height
+                console.log('Split box added, new count:', splitBoxes.length);
+                console.log('Scroll position before add:', {
                     scrollTop: canvasContainer.scrollTop,
                     scrollLeft: canvasContainer.scrollLeft
                 });
-                updateDisplay(false); // 添加分割框时不跳转滚动位置
-                console.log('添加分割框后滚动位置:', {
+                updateDisplay(false); // Do not jump scroll when adding
+                console.log('Scroll position after add:', {
                     scrollTop: canvasContainer.scrollTop,
                     scrollLeft: canvasContainer.scrollLeft
                 });
             } else {
-                console.log('分割框重叠，未添加');
+                console.log('Split box overlaps, not added');
             }
         }
 
@@ -1375,62 +1375,62 @@
 
             let newBox = { ...dragStart.box };
 
-            // 检查当前是否为手动比例模式
+            // Check if in custom ratio mode
             const ratioSelect = document.getElementById('ratioSelect');
             const isManualMode = ratioSelect.value === 'custom';
 
             if (isManualMode) {
-                // 手动模式：宽度最大为图片的100%，但可以缩小，可以调整高度
+                // Manual mode: width up to 100%, can shrink, can adjust height
                 switch (resizeHandle) {
                     case 'se':
-                        // 右下角：调整宽度和高度
+                        // Bottom-right: adjust width and height
                         newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
                         newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
                         break;
                     case 'sw':
-                        // 左下角：调整宽度和高度
+                        // Bottom-left: adjust width and height
                         newBox.width = Math.max(minSize, dragStart.box.width - dx);
                         newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
                         break;
                     case 'ne':
-                        // 右上角：调整宽度和高度
+                        // Top-right: adjust width and height
                         newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
                         newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
                         newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
                         break;
                     case 'nw':
-                        // 左上角：调整宽度和高度
+                        // Top-left: adjust width and height
                         newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
                         newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
                         newBox.width = Math.max(minSize, dragStart.box.width - dx);
                         break;
                     case 'e':
-                        // 右边手柄：调整宽度
+                        // Right handle: adjust width
                         newBox.width = Math.max(minSize, Math.min(dragStart.box.width + dx, currentImage.width - newBox.x));
                         break;
                     case 'w':
-                        // 左边手柄：调整宽度
+                        // Left handle: adjust width
                         newBox.width = Math.max(minSize, dragStart.box.width - dx);
                         break;
                     case 's':
-                        // 下边手柄：调整高度
+                        // Bottom handle: adjust height
                         newBox.height = Math.max(minSize, Math.min(dragStart.box.height + dy, currentImage.height - newBox.y));
                         break;
                     case 'n':
-                        // 上边手柄：调整Y位置和高度
+                        // Top handle: adjust Y and height
                         newBox.y = Math.max(0, Math.min(dragStart.box.y + dy, dragStart.box.y + dragStart.box.height - minSize));
                         newBox.height = dragStart.box.height + (dragStart.box.y - newBox.y);
                         break;
                 }
             } else {
-                // 预设比例模式：使用原来的逻辑
-                // 使用当前分割框记录的比例
+                // Preset ratio mode: use original logic
+                // Use ratio stored on current split box
                 let currentRatio = box.ratio;
                 if (!currentRatio) {
-                    // 如果没有记录比例，使用当前设置的比例
+                    // If no stored ratio, use current setting
                     currentRatio = ratio;
                     if (!currentRatio) {
-                        // 手动比例时，计算输入框的比例
+                        // Custom ratio: compute from inputs
                         const inputWidth = parseInt(document.getElementById('widthInput').value);
                         const inputHeight = parseInt(document.getElementById('heightInput').value);
                         currentRatio = inputWidth / inputHeight;
@@ -1480,7 +1480,7 @@
 
             if (!isOverlapping(newBox, selectedBoxIndex)) {
                 Object.assign(box, newBox);
-                updateOutputHeight(); // 调整大小时自动更新输出高度
+                updateOutputHeight(); // Auto update output height on resize
             }
         }
 
@@ -1503,25 +1503,25 @@
             const ratioSelect = document.getElementById('ratioSelect');
             
             if (ratioSelect.value === 'custom') {
-                // 手动比例模式：根据输入框计算比例
+                // Custom ratio: compute from inputs
                 const inputWidth = parseInt(document.getElementById('widthInput').value);
                 const inputHeight = parseInt(document.getElementById('heightInput').value);
                 return inputWidth / inputHeight;
             } else {
-                // 预设比例模式
+                // Preset ratio mode
                 const [w, h] = ratioSelect.value.split(':').map(Number);
                 return w / h;
             }
         }
 
-        // 控制按钮
+        // Control buttons
         function toggleSplitLines() {
             if (!currentImage) {
-                alert('请先加载图片！');
+                alert('Please load an image first!');
                 return;
             }
             showSplitLines = !showSplitLines;
-            updateDisplay(false); // 切换显示分割线时不跳转滚动位置
+            updateDisplay(false); // Do not jump scroll when toggling split lines
         }
 
         function zoomIn() {
@@ -1529,7 +1529,7 @@
             zoomFactor = Math.min(zoomFactor * 1.2, maxZoom);
             updateDisplay();
             
-            // 缩放后保持水平居中
+            // Keep horizontal center after zoom
             const container = canvasContainer;
             if (canvas.width > container.clientWidth) {
                 container.scrollLeft = (canvas.width - container.clientWidth) / 2;
@@ -1543,7 +1543,7 @@
             zoomFactor = Math.max(zoomFactor / 1.2, minZoom);
             updateDisplay();
             
-            // 缩放后保持水平居中
+            // Keep horizontal center after zoom
             const container = canvasContainer;
             if (canvas.width > container.clientWidth) {
                 container.scrollLeft = (canvas.width - container.clientWidth) / 2;
@@ -1557,7 +1557,7 @@
             zoomFactor = 1.0;
             updateDisplay();
             
-            // 重置缩放后保持水平居中，垂直滚动到顶部
+            // After reset zoom keep horizontal center, scroll to top
             const container = canvasContainer;
             container.scrollTop = 0;
             if (canvas.width > container.clientWidth) {
@@ -1568,20 +1568,20 @@
         }
 
         function clearAll() {
-            if (confirm('确定要清空所有内容吗？')) {
+            if (confirm('Are you sure you want to clear all content?')) {
                 currentImage = null;
                 splitBoxes = [];
                 selectedBoxIndex = null;
                 showSplitLines = false;
-                isResizeLocked = false; // 重置锁定状态
+                isResizeLocked = false; // Reset lock
                 isDragging = false;
                 isResizing = false;
                 isCurrentlyResizing = false;
                 resizeHandle = null;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 uploadArea.classList.remove('hidden');
-                updateInfo(); // 更新状态窗口显示
-                // 重置文件输入
+                updateInfo(); // Update status window
+                // Reset file input
                 document.getElementById('fileInput').value = '';
             }
         }
@@ -1592,14 +1592,14 @@
             const heightInput = document.getElementById('heightInput');
             
             if (ratioSelect.value === 'custom') {
-                // 自由比例模式：启用高度输入框并添加深色样式
+                // Custom ratio: enable height input and dark style
                 heightInput.disabled = false;
                 heightInput.style.backgroundColor = '#f7fafc';
                 heightInput.style.color = '#718096';
                 ratioSelect.classList.add('custom-selected');
                 return;
             } else {
-                // 预设比例模式：禁用高度输入框并自动计算
+                // Preset ratio: disable height input and auto compute
                 heightInput.disabled = true;
                 heightInput.style.backgroundColor = '';
                 heightInput.style.color = '';
@@ -1618,16 +1618,16 @@
             }
         }
 
-        // 新增：根据分割框比例自动计算输出高度
+        // Auto compute output height from split box ratio
         function updateOutputHeight() {
             if (splitBoxes.length === 0) {
-                // 如果没有分割框，使用默认1:1比例
+                // No split boxes: use default 1:1 ratio
                 const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
                 document.getElementById('outputHeightInput').value = outputWidth;
                 return;
             }
 
-            // 使用第一个分割框的比例作为参考
+            // Use first split box ratio as reference
             const firstBox = splitBoxes[0];
             const boxRatio = firstBox.width / firstBox.height;
             
@@ -1637,7 +1637,7 @@
             document.getElementById('outputHeightInput').value = outputHeight;
         }
 
-        // 当分割框发生变化时，自动更新输出高度
+        // When split box changes, auto update output height
         function onSplitBoxChange() {
             updateOutputHeight();
         }
@@ -1645,60 +1645,60 @@
 
         function executeSplit() {
             if (!currentImage || splitBoxes.length === 0) {
-                alert('请先添加分割框！');
+                alert('Please add a split box first!');
                 return;
             }
 
-            // 获取输出尺寸设置
+            // Get output size settings
             const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
             const quality = parseFloat(document.getElementById('qualitySelect').value);
 
             if (outputWidth < 10) {
-                alert('输出宽度不能小于10px！');
+                alert('Output width cannot be less than 10px!');
                 return;
             }
 
             splitBoxes.forEach((box, index) => {
-                // 根据当前分割框的比例计算输出高度
+                // Compute output height from current split box ratio
                 const boxRatio = box.width / box.height;
                 const outputHeight = Math.round(outputWidth / boxRatio);
 
-                // 创建临时画布 - 使用计算的输出尺寸
+                // Create temp canvas with computed output size
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = outputWidth;
                 tempCanvas.height = outputHeight;
                 const tempCtx = tempCanvas.getContext('2d');
 
-                // 裁剪并缩放到指定尺寸
+                // Crop and scale to target size
                 tempCtx.drawImage(
                     currentImage,
-                    box.x, box.y, box.width, box.height,  // 源区域（分割框区域）
-                    0, 0, outputWidth, outputHeight        // 目标区域（固定输出尺寸）
+                    box.x, box.y, box.width, box.height,  // Source (split box area)
+                    0, 0, outputWidth, outputHeight        // Target (fixed output size)
                 );
 
-                // 下载 - 使用设置的质量（JPEG格式）
+                // Download with set quality (JPEG)
                 tempCanvas.toBlob(blob => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `分割_${index + 1}_${outputWidth}x${outputHeight}.jpg`;
+                    a.download = `split_${index + 1}_${outputWidth}x${outputHeight}.jpg`;
                     a.click();
                     URL.revokeObjectURL(url);
                 }, 'image/jpeg', quality);
             });
 
-            // 显示第一个分割框的输出尺寸作为参考
+            // Show first split box output size as reference
             const firstBox = splitBoxes[0];
             const firstBoxRatio = firstBox.width / firstBox.height;
             const firstOutputHeight = Math.round(outputWidth / firstBoxRatio);
             
-            alert(`成功分割成 ${splitBoxes.length} 个图片！\n输出宽度: ${outputWidth}px\n输出高度: 根据分割框比例自动计算\n质量: ${Math.round(quality * 100)}%`);
+            alert(`Successfully split into ${splitBoxes.length} image(s)!\nOutput width: ${outputWidth}px\nOutput height: auto from split box ratio\nQuality: ${Math.round(quality * 100)}%`);
         }
 
-        // 初始化比例选择
+        // Initialize ratio selection
         onRatioChange();
         
-        // 为自由选项添加深色背景
+        // Apply dark background for custom option
         function applyCustomOptionStyle() {
             const ratioSelect = document.getElementById('ratioSelect');
             const customOption = ratioSelect.querySelector('option[value="custom"]');
@@ -1709,54 +1709,54 @@
             }
         }
         
-        // 页面加载完成后应用样式
+        // Apply style after page load
         document.addEventListener('DOMContentLoaded', function() {
             applyCustomOptionStyle();
         });
         
-        // 如果DOM已经加载完成，立即应用样式
+        // If DOM already loaded, apply style immediately
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', applyCustomOptionStyle);
         } else {
             applyCustomOptionStyle();
         }
         
-        // 添加全局鼠标事件监听器，处理在图片外松开鼠标的情况
+        // Global mouseup: handle release outside image
         document.addEventListener('mouseup', function(e) {
-            // 如果松开鼠标时不在canvas区域，也要处理锁定逻辑
+            // If released outside canvas, still handle lock
             if (isCurrentlyResizing) {
-                console.log('全局鼠标松开，停止拖动调整大小，立即锁定分割框');
+                console.log('Global mouse up, stop resize drag, lock split box');
                 isCurrentlyResizing = false;
                 isResizing = false;
                 isResizeLocked = true;
                 resizeHandle = null;
                 updateDisplay(false);
             } else if (isDragging) {
-                console.log('全局鼠标松开，停止拖动分割框');
+                console.log('Global mouse up, stop dragging split box');
                 isDragging = false;
                 updateDisplay(false);
             }
         });
         
-        // 添加全局点击事件监听器，处理点击图片外区域的情况
+        // Global click: handle click outside image
         document.addEventListener('click', function(e) {
-            // 如果点击的不是canvas区域
+            // If click is not on canvas
             if (!canvas.contains(e.target)) {
-                // 注意：锁定逻辑已移到全局 mouseup 事件中自动处理
-                // 如果正在拖动，则停止拖动
+                // Lock logic handled in global mouseup
+                // If dragging, stop drag
                 if (isDragging) {
                     isDragging = false;
-                    console.log('点击图片外区域，停止拖动分割框');
-                    updateDisplay(false); // 点击图片外区域时不跳转滚动位置
+                    console.log('Click outside image, stop dragging split box');
+                    updateDisplay(false); // Do not jump scroll when clicking outside
                 }
             }
         });
 
-        // 添加调试信息
-        console.log('页面加载完成，开始初始化...');
-        console.log('文件输入元素:', document.getElementById('fileInput'));
-        console.log('上传区域元素:', document.getElementById('uploadArea'));
-        console.log('画布容器元素:', document.getElementById('canvasContainer'));
+        // Debug
+        console.log('Page loaded, initializing...');
+        console.log('File input element:', document.getElementById('fileInput'));
+        console.log('Upload area element:', document.getElementById('uploadArea'));
+        console.log('Canvas container element:', document.getElementById('canvasContainer'));
     </script>
 </body>
 </html>
