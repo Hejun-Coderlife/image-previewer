@@ -11,7 +11,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-Image Splitter - Web Version</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%236366f1'/><stop offset='.55' stop-color='%238b5cf6'/><stop offset='1' stop-color='%23ec4899'/></linearGradient></defs><rect x='2' y='2' width='28' height='28' rx='8' fill='url(%23g)'/><g stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' fill='none'><path d='M16 21.5V11'/><path d='M11.4 15.6 16 11l4.6 4.6'/><path d='M11 22h10'/></g></svg>">
     <style>
         * {
             margin: 0;
@@ -21,40 +21,185 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
-            background: white;
+            color: #1b1e2b;
             min-height: 100vh;
             padding: 0;
             margin: 0;
+            overflow: hidden;
+            background:
+                radial-gradient(1200px 820px at 12% -12%, #eaefff 0%, transparent 60%),
+                radial-gradient(1000px 720px at 100% -6%, #fdeef8 0%, transparent 55%),
+                linear-gradient(180deg, #f7f8fd 0%, #eef0f8 100%);
+        }
+
+        /* Floating 3D light orbs */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(420px 420px at 20% 28%, rgba(99, 102, 241, 0.22), transparent 70%),
+                radial-gradient(480px 480px at 82% 22%, rgba(236, 72, 153, 0.16), transparent 70%),
+                radial-gradient(540px 540px at 66% 88%, rgba(34, 211, 238, 0.18), transparent 70%),
+                radial-gradient(420px 420px at 28% 82%, rgba(139, 92, 246, 0.18), transparent 70%);
+            filter: blur(6px);
+            animation: drift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift {
+            0%   { transform: translate3d(0, 0, 0) scale(1); }
+            50%  { transform: translate3d(2%, -2%, 0) scale(1.06); }
+            100% { transform: translate3d(-2%, 2%, 0) scale(1); }
+        }
+
+        /* Animated 3D tech background (drawn by JS) */
+        #bg3d {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
         }
 
         .container {
             width: 100%;
             height: 100vh;
-            background: white;
+            background: transparent;
+            position: relative;
+            z-index: 1;
             display: flex;
             flex-direction: column;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 13px 30px;
+            background: rgba(255, 255, 255, 0.6);
+            -webkit-backdrop-filter: blur(18px) saturate(150%);
+            backdrop-filter: blur(18px) saturate(150%);
+            color: #1b1e2b;
+            padding: 14px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 30px -12px rgba(60, 66, 130, 0.18);
         }
 
-        .header h1 {
-            font-size: 36.4px;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Left floating toolbar */
+        .side-controls {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 5;
+        }
+
+        .side-item { position: relative; display: flex; }
+
+        .side-btn {
+            width: 46px;
+            height: 46px;
+            padding: 0;
+            gap: 0;
+            justify-content: center;
+            align-items: center;
+        }
+        .side-btn svg { width: 24px; height: 24px; display: block; flex-shrink: 0; }
+
+        /* Tooltip that flies out to the right on hover */
+        .side-tip {
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%) translateX(-6px);
+            padding: 6px 11px;
+            background: rgba(28, 30, 48, 0.94);
+            color: #fff;
+            font-size: 12px;
             font-weight: 600;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+            border-radius: 8px;
+            box-shadow: 0 10px 24px -8px rgba(20, 22, 45, 0.5);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            z-index: 20;
+        }
+        .side-tip::before {
+            content: "";
+            position: absolute;
+            left: -3px;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 8px;
+            height: 8px;
+            background: rgba(28, 30, 48, 0.94);
+            border-radius: 1px;
+        }
+        .side-item:hover .side-tip { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            color: #fff;
+            transform: rotate(-6deg);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            background-size: 200% 200%;
+            box-shadow: 0 6px 16px -4px rgba(124, 92, 246, 0.6),
+                        0 1px 0 rgba(255, 255, 255, 0.4) inset;
+            animation: logoFlow 6s ease infinite;
+            transition: transform 0.3s ease;
+        }
+
+        .brand:hover .logo-mark { transform: rotate(0deg) scale(1.06); }
+
+        .brand h1 {
+            font-size: 27px;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            background: linear-gradient(90deg, #4f46e5, #8b5cf6, #ec4899, #8b5cf6, #4f46e5);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: logoFlow 6s ease infinite;
+        }
+
+        @keyframes logoFlow {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .control-panel {
-            background: #f8f9fa;
-            padding: 11px 30px;
-            border-bottom: 1px solid #e0e0e0;
+            position: relative;
+            z-index: 20; /* keep the panel (and its overflowing dropdown) above the canvas area */
+            background: rgba(255, 255, 255, 0.55);
+            -webkit-backdrop-filter: blur(16px) saturate(140%);
+            backdrop-filter: blur(16px) saturate(140%);
+            padding: 12px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 6px 24px -14px rgba(60, 66, 130, 0.2);
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
@@ -62,59 +207,88 @@
         }
 
         .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            padding: 10px 18px;
+            border: 1px solid rgba(27, 30, 43, 0.09);
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform .2s cubic-bezier(.2, .8, .2, 1), box-shadow .2s, border-color .2s, color .2s;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
+            background: rgba(255, 255, 255, 0.72);
+            color: #2b2f3d;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 6px rgba(30, 35, 80, 0.07), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); filter: brightness(0.98); }
 
-        .btn-primary {
-            background: #b496c8;
-            color: white;
-        }
-
-        .btn-success {
-            background: #b496c8;
-            color: white;
-        }
-
-        .btn-info {
-            background: #b496c8;
-            color: white;
-        }
-
-        .btn-warning {
-            background: #ed8936;
-            color: white;
-        }
-
+        /* Ghost buttons — distinct hover accent per action */
+        .btn-info,
+        .btn-success,
+        .btn-warning,
         .btn-danger {
-            background: #b496c8;
-            color: white;
+            background: rgba(255, 255, 255, 0.72);
+            color: #2b2f3d;
         }
 
+        .btn-info:hover    { color: #4f46e5; border-color: rgba(99, 102, 241, 0.45);  box-shadow: 0 10px 22px -8px rgba(99, 102, 241, 0.42); }
+        .btn-success:hover { color: #7c3aed; border-color: rgba(139, 92, 246, 0.45);  box-shadow: 0 10px 22px -8px rgba(139, 92, 246, 0.42); }
+        .btn-danger:hover  { color: #e11d48; border-color: rgba(225, 29, 72, 0.45);   box-shadow: 0 10px 22px -8px rgba(225, 29, 72, 0.4); }
+
+        /* Filled accent buttons */
+        .btn-primary,
         .btn-secondary {
-            background: #667eea;
-            color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #a855f7 100%);
+            color: #fff;
+            border: 0;
+            box-shadow: 0 8px 18px -6px rgba(99, 102, 241, 0.6),
+                        0 1px 0 rgba(255, 255, 255, 0.35) inset;
         }
 
+        .btn-primary:hover,
         .btn-secondary:hover {
-            background: #5568d3;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px -8px rgba(124, 92, 246, 0.75),
+                        0 1px 0 rgba(255, 255, 255, 0.4) inset;
         }
 
+        /* Sheen sweep across filled buttons on hover */
+        .btn-primary::after,
+        .btn-secondary::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.45) 48%, transparent 66%);
+            transform: translateX(-130%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn-primary:hover::after,
+        .btn-secondary:hover::after { transform: translateX(130%); }
+
+        /* Split — primary call-to-action with a glowing pulse */
         .btn-split {
-            font-size: 16.8px;
+            font-size: 15px;
+            padding: 11px 30px;
+            letter-spacing: 0.04em;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 125%);
+            animation: ctaGlow 2.6s ease-in-out infinite;
+        }
+
+        @keyframes ctaGlow {
+            0%, 100% { box-shadow: 0 8px 20px -6px rgba(124, 92, 246, 0.55), 0 1px 0 rgba(255, 255, 255, 0.35) inset; }
+            50%      { box-shadow: 0 12px 30px -6px rgba(236, 72, 153, 0.6), 0 0 0 3px rgba(139, 92, 246, 0.14); }
         }
 
         .split-params {
@@ -141,17 +315,20 @@
 
         .param-group select,
         .param-group input {
-            padding: 6px 10px;
-            border: 1px solid #cbd5e0;
-            border-radius: 6px;
+            padding: 7px 11px;
+            border: 1px solid rgba(27, 30, 43, 0.12);
+            border-radius: 9px;
             font-size: 13px;
             outline: none;
-            transition: border-color 0.3s;
+            background: rgba(255, 255, 255, 0.85);
+            color: #1b1e2b;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .param-group select:focus,
         .param-group input:focus {
-            border-color: #667eea;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
         }
 
         .param-group input[type="number"] {
@@ -177,11 +354,11 @@
         .canvas-container {
             flex: 1;
             position: relative;
-            background: #f0f0f0;
+            background: transparent;
             overflow: auto;
             display: flex;
-            align-items: flex-start;
-            justify-content: center;
+            align-items: safe center;
+            justify-content: safe center;
         }
 
         #canvas {
@@ -196,17 +373,25 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            padding: 60px;
-            border: 3px dashed #cbd5e0;
-            border-radius: 16px;
-            background: white;
+            padding: 64px 72px;
+            border: 1px solid rgba(27, 30, 43, 0.08);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.62);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            backdrop-filter: blur(20px) saturate(150%);
+            box-shadow: 0 24px 60px -22px rgba(60, 66, 130, 0.3),
+                        0 1px 0 rgba(255, 255, 255, 0.8) inset;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.35s cubic-bezier(.2, .8, .2, 1);
         }
 
         .upload-area:hover {
-            border-color: #667eea;
-            background: #f7fafc;
+            border-color: rgba(99, 102, 241, 0.28);
+            background: rgba(255, 255, 255, 0.78);
+            transform: translate(-50%, calc(-50% - 4px));
+            box-shadow: 0 34px 74px -22px rgba(60, 66, 130, 0.38),
+                        0 0 0 4px rgba(99, 102, 241, 0.06),
+                        0 1px 0 rgba(255, 255, 255, 0.9) inset;
         }
 
         .upload-area.hidden {
@@ -214,9 +399,13 @@
         }
 
         .upload-area h2 {
-            font-size: 24px;
-            color: #2d3748;
+            font-size: 25px;
             margin-bottom: 10px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .upload-area p {
@@ -228,7 +417,22 @@
         .upload-icon {
             font-size: 64px;
             margin-bottom: 20px;
+            animation: floatY 3.4s ease-in-out infinite;
+            filter: drop-shadow(0 12px 18px rgba(99, 102, 241, 0.28));
         }
+
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-9px); }
+        }
+
+        .upload-ring {
+            transform-box: view-box;
+            transform-origin: 42px 42px;
+            animation: spin 16s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .instructions {
             position: absolute;
@@ -280,30 +484,33 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 5;
         }
 
         .zoom-btn {
-            width: 40px;
-            height: 40px;
-            border: none;
-            border-radius: 6px;
-            background: #667eea;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
+            width: 46px;
+            height: 46px;
+            padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid rgba(27, 30, 43, 0.09);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.72);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            color: #2b2f3d;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(30, 35, 80, 0.07), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+            transition: transform .2s cubic-bezier(.2, .8, .2, 1), box-shadow .2s, border-color .2s, color .2s;
         }
+        .zoom-btn svg { width: 28px; height: 28px; flex-shrink: 0; display: block; }
 
         .zoom-btn:hover {
-            background: #5568d3;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            color: #4f46e5;
+            border-color: rgba(99, 102, 241, 0.45);
+            box-shadow: 0 10px 22px -8px rgba(99, 102, 241, 0.42);
         }
 
         @media (max-width: 1400px) {
@@ -337,21 +544,23 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.6);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+            backdrop-filter: blur(16px) saturate(150%);
             padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 14px;
+            box-shadow: 0 12px 30px -12px rgba(60, 66, 130, 0.3);
             font-size: 13px;
-            color: #666;
+            color: #4a5568;
             z-index: 1000;
-            max-width: 200px;
-            border: 1px solid #e0e0e0;
+            max-width: 220px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
         }
 
         .status-window.loading {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: #667eea;
-            color: #667eea;
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.5);
+            color: #4f46e5;
         }
 
         /* Dark background style for custom option */
@@ -373,35 +582,102 @@
             color: white !important;
             font-weight: bold;
         }
+
+        /* Custom-styled dropdown (replaces the native OS popup) */
+        .cselect { position: relative; display: inline-block; }
+
+        .cselect-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 11px;
+            min-width: 90px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #1b1e2b;
+            border: 1px solid rgba(27, 30, 43, 0.12);
+            border-radius: 9px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .cselect-btn:hover { border-color: rgba(99, 102, 241, 0.45); }
+        .cselect.open .cselect-btn { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16); }
+
+        .cselect-lbl { flex: 1; text-align: left; white-space: nowrap; }
+        .cselect-caret { font-size: 10px; color: #6366f1; transition: transform 0.2s; }
+        .cselect.open .cselect-caret { transform: rotate(180deg); }
+
+        .cselect-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.92);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+            backdrop-filter: blur(16px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 18px 40px -14px rgba(60, 66, 130, 0.4);
+            z-index: 50;
+            max-height: 300px;
+            overflow: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px) scale(0.98);
+            transform-origin: top;
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+        }
+        .cselect.open .cselect-menu { opacity: 1; visibility: visible; transform: none; }
+
+        .cselect-opt {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 11px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #2b2f3d;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .cselect-opt::before { content: ""; width: 12px; display: inline-block; text-align: center; font-size: 11px; }
+        .cselect-opt:hover { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
+        .cselect-opt.sel { color: #4f46e5; font-weight: 600; }
+        .cselect-opt.sel::before { content: "✓"; color: #6366f1; }
     </style>
 </head>
 <body>
+    <canvas id="bg3d"></canvas>
     <div class="container">
-        <div class="header">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <h1 style="letter-spacing: 0.05em;"><span style="color: #ff4d4d;">i</span>mage</h1>
+        <!-- Left floating toolbar (moved off the top bar to free vertical space) -->
+        <div class="side-controls">
+            <div class="side-item">
+                <label for="fileInput" class="btn btn-primary side-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></label>
+                <span class="side-tip">Select image</span>
             </div>
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                <label for="fileInput" class="btn btn-primary">
-                    📁 Select
-                </label>
-                <input type="file" id="fileInput" accept="image/*" multiple>
-
-                <button class="btn btn-info" onclick="fitWindow()">
-                    🔲 Fit to Window
-                </button>
-
-                <button class="btn btn-success" onclick="toggleSplitLines()">
-                    📏 Show/Hide
-                </button>
-
-                <button class="btn btn-danger" onclick="clearAll()">
-                    🗑️ Clear
-                </button>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+            <div class="side-item">
+                <button class="btn btn-info side-btn" onclick="fitWindow()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+                <span class="side-tip">Fit to Window</span>
+            </div>
+            <div class="side-item">
+                <button class="btn btn-success side-btn" onclick="toggleSplitLines()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <span class="side-tip">Show / Hide lines</span>
+            </div>
+            <div class="side-item">
+                <button class="btn btn-danger side-btn" onclick="clearAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+                <span class="side-tip">Clear all</span>
             </div>
         </div>
 
-        <div class="control-panel" style="display: flex; flex-wrap: nowrap; gap: 15px; align-items: center; justify-content: center;">
+        <div class="control-panel" style="display: flex; flex-wrap: nowrap; gap: 15px; align-items: center; justify-content: flex-start;">
+            <div class="brand">
+                <span class="logo-mark">✂</span>
+                <h1>image</h1>
+            </div>
             <div style="width: 2px; height: 30px; background: #e0e0e0; margin: 0 10px;"></div>
 
             <div class="param-group">
@@ -472,16 +748,31 @@
                 <canvas id="canvas"></canvas>
                 
                 <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">📤</div>
-                    <h2>Upload multiple images</h2>
-                    <p>Click here or drag image files here</p>
-                    <p style="font-size: 12px; color: #a0aec0;">Supports JPG, PNG, GIF, WebP and other formats</p>
+                    <div class="upload-icon">
+                        <svg width="84" height="84" viewBox="0 0 84 84" fill="none">
+                            <defs>
+                                <linearGradient id="upg" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#6366f1"/>
+                                    <stop offset="0.55" stop-color="#8b5cf6"/>
+                                    <stop offset="1" stop-color="#ec4899"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="upload-ring" cx="42" cy="42" r="39" stroke="url(#upg)" stroke-width="1.4" stroke-dasharray="2 7" opacity="0.5"/>
+                            <rect x="9" y="9" width="66" height="66" rx="21" fill="url(#upg)"/>
+                            <g stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                                <path d="M42 53V31"/>
+                                <path d="M32 41l10-10 10 10"/>
+                                <path d="M29 55h26"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <h2>Upload images</h2>
                 </div>
 
                 <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">+</button>
-                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">−</button>
-                    <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
+                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
+                    <button class="zoom-btn" onclick="resetZoom()" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
                 </div>
 
                 <!-- Status window at bottom-right -->
@@ -517,9 +808,7 @@
         const fileInput = document.getElementById('fileInput');
         if (fileInput) {
             fileInput.addEventListener('change', handleFileSelect);
-            console.log('File input event listener bound');
         } else {
-            console.error('File input element not found');
         }
         
         // Bind mouse event listeners
@@ -528,7 +817,6 @@
         canvas.addEventListener('mouseup', onCanvasMouseUp);
         canvas.addEventListener('dblclick', onCanvasDoubleClick);
         canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
-        console.log('Mouse event listeners bound');
         
         // Add container scroll event listener
         canvasContainer.addEventListener('scroll', function() {
@@ -552,67 +840,47 @@
         canvasContainer.addEventListener('drop', handleDrop, false);
 
         function handleDrop(e) {
-            console.log('Drop file event triggered');
             const dt = e.dataTransfer;
             const files = dt.files;
-            console.log('Dropped file count:', files.length);
             handleFiles(files);
         }
 
         // File selection handler
         function handleFileSelect(e) {
-            console.log('File selection event triggered');
             const files = e.target.files;
-            console.log('Selected file count:', files.length);
             if (files.length > 0) {
-                console.log('First file name:', files[0].name);
-                console.log('First file type:', files[0].type);
             }
             handleFiles(files);
         }
 
         function handleFiles(files) {
-            console.log('handleFiles called, file count:', files.length);
-            if (files.length === 0) {
-                console.log('No files, exit');
-                return;
-            }
-
+            if (files.length === 0) return;
             if (files.length === 1) {
-                console.log('Loading single image:', files[0].name);
                 loadImage(files[0]);
             } else {
-                console.log('Concatenating multiple images, count:', files.length);
-                // Concatenate multiple images
                 concatImages(files);
             }
-
-            uploadArea.classList.add('hidden');
-            console.log('Hide upload area');
+            // The upload area is hidden only once an image actually loads (see loadImage / concatImages),
+            // so a read/decode failure leaves the uploader in place instead of a blank screen.
         }
 
         function loadImage(file) {
-            console.log('Start loading image:', file.name);
             const reader = new FileReader();
             
             reader.onload = function(e) {
-                console.log('FileReader read complete');
                 const img = new Image();
                 
                 img.onload = function() {
-                    console.log('Image loaded successfully, size:', img.width, 'x', img.height);
                     currentImage = img;
                     splitBoxes = [];
-                    // Add a default split box
                     addDefaultSplitBox();
                     showSplitLines = true;
                     fitWindow();
                     updateInfo();
-                    console.log('Image display complete');
+                    uploadArea.classList.add('hidden'); // hide only after a successful load
                 };
                 
                 img.onerror = function() {
-                    console.error('Image failed to load');
                     alert('Image failed to load, please check file format');
                 };
                 
@@ -620,7 +888,6 @@
             };
             
             reader.onerror = function() {
-                console.error('File read failed');
                 alert('File read failed');
             };
             
@@ -669,16 +936,25 @@
                             concatImg.onload = function() {
                                 currentImage = concatImg;
                                 splitBoxes = [];
-                                // Add a default split box
                                 addDefaultSplitBox();
                                 showSplitLines = true;
                                 fitWindow();
                                 updateInfo();
+                                uploadArea.classList.add('hidden'); // hide only after success
+                            };
+                            concatImg.onerror = function() {
+                                alert('Failed to combine the images, please try again.');
                             };
                             concatImg.src = tempCanvas.toDataURL();
                         }
                     };
+                    img.onerror = function() {
+                        alert('One of the images could not be read: ' + (file.name || ''));
+                    };
                     img.src = e.target.result;
+                };
+                reader.onerror = function() {
+                    alert('Failed to read a file: ' + (file.name || ''));
                 };
                 reader.readAsDataURL(file);
             });
@@ -877,6 +1153,7 @@
 
         function onCanvasMouseDown(e) {
             if (!currentImage) return;
+            if (!showSplitLines) return; // lines hidden -> view-only, no adding/dragging
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -889,41 +1166,16 @@
             const actualScaleX = zoomFactor;
             const actualScaleY = zoomFactor;
 
-            console.log('Click event debug:', {
-                clickX: x,
-                clickY: y,
-                canvasWidth: canvas.width,
-                canvasHeight: canvas.height,
-                imageSize: imageSize,
-                originalSize: { width: currentImage.width, height: currentImage.height },
-                zoomFactor: zoomFactor,
-                oldScaleX: scaleX,
-                oldScaleY: scaleY,
-                newScaleX: actualScaleX,
-                newScaleY: actualScaleY,
-                selectedBoxIndex: selectedBoxIndex,
-                isDragging: isDragging,
-                isResizing: isResizing,
-                isResizeLocked: isResizeLocked,
-                splitBoxCount: splitBoxes.length,
-                scrollPosition: { scrollTop: canvasContainer.scrollTop, scrollLeft: canvasContainer.scrollLeft }
-            });
 
             // Note: lock logic moved to onCanvasMouseUp
 
             // Check if clicking handle
             const handleCheck = checkHandleHit(x, y, actualScaleX, actualScaleY);
             if (handleCheck) {
-                console.log('Handle click state:', {
-                    isResizing: isResizing,
-                    isCurrentlyResizing: isCurrentlyResizing,
-                    isResizeLocked: isResizeLocked
-                });
                 
                 // If this split box is locked, unlock and start resizing
                 const targetBoxIndex = handleCheck.index;
                 if (isResizeLocked && selectedBoxIndex === targetBoxIndex) {
-                    console.log('Split box locked, click handle to unlock and resize');
                     isResizeLocked = false; // Unlock
                 }
                 
@@ -933,7 +1185,6 @@
                 resizeHandle = handleCheck.handle;
                 selectedBoxIndex = targetBoxIndex;
                 dragStart = { x, y, box: { ...splitBoxes[selectedBoxIndex] } };
-                console.log('Start resizing split box');
                 return;
             }
 
@@ -949,33 +1200,18 @@
                     isDragging = true;
                     selectedBoxIndex = i;
                     dragStart = { x, y, box: { ...box } };
-                    console.log('Start dragging split box');
                     return;
                 }
             }
 
             // If dragging, click anywhere to stop
             if (isDragging) {
-                console.log('isDragging true, stop dragging split box');
                 isDragging = false;
-                console.log('Stop dragging split box');
                 updateDisplay(false); // Do not jump scroll when stopping drag
                 return;
             }
 
             // Add new split box
-            console.log('Click position:', x, y);
-            console.log('showSplitLines:', showSplitLines);
-            console.log('Preparing to add split box, scroll position:', {
-                scrollTop: canvasContainer.scrollTop,
-                scrollLeft: canvasContainer.scrollLeft
-            });
-            console.log('Current state:', {
-                selectedBoxIndex: selectedBoxIndex,
-                isDragging: isDragging,
-                isResizing: isResizing,
-                isResizeLocked: isResizeLocked
-            });
             
             // Force reset all state so we can add split box
             isDragging = false;
@@ -983,15 +1219,8 @@
             isCurrentlyResizing = false;
             isResizeLocked = false;
             resizeHandle = null;
-            console.log('After force reset:', {
-                isDragging: isDragging,
-                isResizing: isResizing,
-                isResizeLocked: isResizeLocked
-            });
             
-            console.log('About to call addSplitBox');
             addSplitBox(x, y);
-            console.log('addSplitBox call complete');
         }
 
         function checkHandleHit(x, y, scaleX, scaleY) {
@@ -1101,25 +1330,13 @@
             // Stop drag
             if (isDragging) {
                 isDragging = false;
-                console.log('Mouse up, stop dragging split box');
             }
             // Stop resize drag and lock split box
             if (isCurrentlyResizing) {
-                console.log('State before mouse up:', {
-                    isResizing: isResizing,
-                    isCurrentlyResizing: isCurrentlyResizing,
-                    isResizeLocked: isResizeLocked
-                });
                 isCurrentlyResizing = false;
                 isResizing = false;
                 isResizeLocked = true;
                 resizeHandle = null;
-                console.log('State after mouse up:', {
-                    isResizing: isResizing,
-                    isCurrentlyResizing: isCurrentlyResizing,
-                    isResizeLocked: isResizeLocked
-                });
-                console.log('Mouse up, stop resize drag, lock split box');
                 updateDisplay(false); // Do not jump scroll when locking
             }
         }
@@ -1128,7 +1345,7 @@
             e.preventDefault(); // Prevent default, avoid page scroll
             e.stopPropagation(); // Stop propagation
             
-            if (!currentImage || splitBoxes.length === 0) return;
+            if (!currentImage || splitBoxes.length === 0 || !showSplitLines) return;
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -1138,18 +1355,6 @@
             const actualScaleX = zoomFactor;
             const actualScaleY = zoomFactor;
 
-            console.log('Double-click event debug:', {
-                clickX: x,
-                clickY: y,
-                canvasWidth: canvas.width,
-                canvasHeight: canvas.height,
-                imageSize: imageSize,
-                originalSize: { width: currentImage.width, height: currentImage.height },
-                zoomFactor: zoomFactor,
-                actualScaleX: actualScaleX,
-                actualScaleY: actualScaleY,
-                splitBoxCount: splitBoxes.length
-            });
 
             // Check if double-clicking split box
             for (let i = splitBoxes.length - 1; i >= 0; i--) {
@@ -1159,17 +1364,8 @@
                 const boxWidth = box.width * actualScaleX;
                 const boxHeight = box.height * actualScaleY;
 
-                console.log(`Check split box ${i}:`, {
-                    boxX, boxY, boxWidth, boxHeight,
-                    clickX: x, clickY: y,
-                    inBox: x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight
-                });
 
                 if (x >= boxX && x <= boxX + boxWidth && y >= boxY && y <= boxY + boxHeight) {
-                    console.log('Before double-click delete:');
-                    console.log('- Split box index to delete:', i);
-                    console.log('- Split box count before delete:', splitBoxes.length);
-                    console.log('- Split boxes before delete:', splitBoxes);
                     
                     splitBoxes.splice(i, 1);
                     selectedBoxIndex = null;
@@ -1179,21 +1375,11 @@
                     isCurrentlyResizing = false; // Reset resize drag
                     resizeHandle = null; // Reset handle
                     
-                    console.log(`Deleted split box ${i}, remaining:`, splitBoxes.length);
-                    console.log('- Split boxes after delete:', splitBoxes);
-                    console.log('State after delete reset:', {
-                        selectedBoxIndex: selectedBoxIndex,
-                        isDragging: isDragging,
-                        isResizing: isResizing,
-                        isResizeLocked: isResizeLocked,
-                        resizeHandle: resizeHandle
-                    });
                     updateDisplay(false); // Do not jump scroll when deleting
                     return;
                 }
             }
             
-            console.log('Double-click not inside any split box');
         }
 
         function onCanvasWheel(e) {
@@ -1210,7 +1396,7 @@
             }
 
             updateDisplay();
-            
+
             // After zoom keep horizontal center, keep current vertical scroll
             const container = canvasContainer;
             if (canvas.width > container.clientWidth) {
@@ -1220,127 +1406,108 @@
             }
         }
 
+        // Full-width box sized to the given aspect ratio, contained within the image.
+        // Prefers the full image width; if that ratio would be taller than the image,
+        // it shrinks the width (keeping the ratio) and centers it horizontally.
+        function sizeBoxForRatio(ratio) {
+            let w = currentImage.width;
+            let h = w / ratio;
+            if (h > currentImage.height) {
+                h = currentImage.height;
+                w = h * ratio;
+            }
+            w = Math.floor(w);
+            h = Math.floor(h);
+            return { x: Math.floor((currentImage.width - w) / 2), width: w, height: h };
+        }
+
         function addDefaultSplitBox() {
             if (!currentImage) return;
-            
-            // Default split box: width 100% of image, height by ratio
-            const width = currentImage.width;
-            const ratio = getCurrentRatio();
+
             const ratioSelect = document.getElementById('ratioSelect');
-            let height;
-            
-            if (ratio) {
-                // Compute height from ratio
-                height = Math.floor(width / ratio);
-            } else {
-                // Custom ratio: compute height from width/height inputs
-                const inputWidth = parseInt(document.getElementById('widthInput').value);
-                const inputHeight = parseInt(document.getElementById('heightInput').value);
-                const inputRatio = inputWidth / inputHeight;
-                height = Math.floor(width / inputRatio);
-                console.log('Custom ratio compute:', { inputWidth, inputHeight, inputRatio, width, height });
-            }
+            const boxRatio = getCurrentRatio();
+            const size = sizeBoxForRatio(boxRatio);
 
-            // Default at image top, width aligned with image
-            const defaultX = 0;
-            const defaultY = 0;
-
-            const defaultBox = {
-                x: defaultX,
-                y: defaultY,
-                width: width,
-                height: height,
-                ratio: ratio || (() => {
-                    // Custom ratio: compute from inputs
-                    const inputWidth = parseInt(document.getElementById('widthInput').value);
-                    const inputHeight = parseInt(document.getElementById('heightInput').value);
-                    return inputWidth / inputHeight;
-                })(),
-                mode: ratioSelect.value // Mode when created
-            };
-
-            splitBoxes.push(defaultBox);
+            splitBoxes.push({
+                x: size.x,
+                y: 0,
+                width: size.width,
+                height: size.height,
+                ratio: boxRatio,
+                mode: ratioSelect.value
+            });
             selectedBoxIndex = 0;
-            isResizeLocked = false; // New box not locked by default
-            updateOutputHeight(); // Auto update output height
-            console.log('Added default split box:', defaultBox);
+            isResizeLocked = false;
+            updateOutputHeight();
+        }
+
+        // Find a free vertical interval large enough for a full-height box (never squished) near clickTop.
+        // Boxes span the full width, so only vertical intervals matter. Returns { top } or null if no room.
+        function findVerticalSlot(clickTop, desiredHeight) {
+            const imgH = currentImage.height;
+            // Merge occupied vertical intervals from existing boxes.
+            const iv = splitBoxes.map(b => [b.y, b.y + b.height]).sort((a, b) => a[0] - b[0]);
+            const merged = [];
+            for (const [s, e] of iv) {
+                if (merged.length && s <= merged[merged.length - 1][1]) {
+                    merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], e);
+                } else {
+                    merged.push([s, e]);
+                }
+            }
+            // Collect the free gaps within [0, imgH].
+            const gaps = [];
+            let cur = 0;
+            for (const [s, e] of merged) {
+                if (s - cur > 2) gaps.push([cur, s]);
+                cur = Math.max(cur, e);
+            }
+            if (imgH - cur > 2) gaps.push([cur, imgH]);
+            // Only gaps big enough for the full box height (keep the exact ratio, never squish).
+            const fits = gaps.filter(g => g[1] - g[0] >= desiredHeight);
+            if (!fits.length) return null;
+            // Nearest fitting gap to the click.
+            const clickCenter = clickTop + desiredHeight / 2;
+            let best = null, bestDist = Infinity;
+            for (const g of fits) {
+                const dist = clickCenter < g[0] ? g[0] - clickCenter
+                           : clickCenter > g[1] ? clickCenter - g[1] : 0;
+                if (dist < bestDist) { bestDist = dist; best = g; }
+            }
+            const top = Math.max(best[0], Math.min(clickTop - desiredHeight / 2, best[1] - desiredHeight));
+            return { top: Math.max(0, Math.round(top)) };
         }
 
         function addSplitBox(x, y) {
-            console.log('addSplitBox called with:', { x, y });
-            const scaleX = imageSize.width / currentImage.width;
-            const scaleY = imageSize.height / currentImage.height;
-            const actualScaleY = zoomFactor; // Define actualScaleY
-
-            // Split box width 100% of image, height by ratio
-            const width = currentImage.width;
-            const ratio = getCurrentRatio();
+            const actualScaleY = zoomFactor;
             const ratioSelect = document.getElementById('ratioSelect');
-            let height;
-            
-            if (ratio) {
-                // Compute height from ratio
-                height = Math.floor(width / ratio);
-            } else {
-                // Custom ratio: compute height from width/height inputs
-                const inputWidth = parseInt(document.getElementById('widthInput').value);
-                const inputHeight = parseInt(document.getElementById('heightInput').value);
-                const inputRatio = inputWidth / inputHeight;
-                height = Math.floor(width / inputRatio);
+            const boxRatio = getCurrentRatio();       // always the currently selected ratio
+            const size = sizeBoxForRatio(boxRatio);   // full width, contained, keeps the ratio
+
+            const clickTop = Math.max(0, Math.min(y / actualScaleY, currentImage.height));
+            const slot = findVerticalSlot(clickTop, size.height);
+            if (!slot) {
+                const el = document.getElementById('statusText');
+                if (el) el.textContent = 'No room for another box at this ratio';
+                return;
             }
 
-            // Width aligned with image, Y follows click
-            const originalX = 0;
-            const originalY = Math.max(0, Math.min(y / actualScaleY, currentImage.height - height));
-
-            const newBox = {
-                x: originalX,
-                y: Math.floor(originalY),
-                width: width,
-                height: height,
-                ratio: ratio || (() => {
-                    // Custom ratio: compute from inputs
-                    const inputWidth = parseInt(document.getElementById('widthInput').value);
-                    const inputHeight = parseInt(document.getElementById('heightInput').value);
-                    return inputWidth / inputHeight;
-                })(),
-                mode: ratioSelect.value // Mode when created
-            };
-
-            console.log('Try add split box:', newBox);
-            console.log('Current split box count:', splitBoxes.length);
-
-            // Check overlap
-            console.log('Before overlap check:');
-            console.log('- Current split box count:', splitBoxes.length);
-            console.log('- Current split boxes:', splitBoxes);
-            console.log('- New split box:', newBox);
-            
-            const isOverlap = isOverlapping(newBox);
-            console.log('- Overlap:', isOverlap);
-            
-            if (!isOverlap) {
-                splitBoxes.push(newBox);
-                selectedBoxIndex = splitBoxes.length - 1;
-                isResizeLocked = false; // New box not locked by default
-                isDragging = false; // Reset drag
-                isResizing = false; // Reset resize
-                isCurrentlyResizing = false; // Reset resize drag
-                resizeHandle = null; // Reset handle
-                updateOutputHeight(); // Auto update output height
-                console.log('Split box added, new count:', splitBoxes.length);
-                console.log('Scroll position before add:', {
-                    scrollTop: canvasContainer.scrollTop,
-                    scrollLeft: canvasContainer.scrollLeft
-                });
-                updateDisplay(false); // Do not jump scroll when adding
-                console.log('Scroll position after add:', {
-                    scrollTop: canvasContainer.scrollTop,
-                    scrollLeft: canvasContainer.scrollLeft
-                });
-            } else {
-                console.log('Split box overlaps, not added');
-            }
+            splitBoxes.push({
+                x: size.x,
+                y: slot.top,
+                width: size.width,
+                height: size.height,
+                ratio: boxRatio,
+                mode: ratioSelect.value
+            });
+            selectedBoxIndex = splitBoxes.length - 1;
+            isResizeLocked = false;
+            isDragging = false;
+            isResizing = false;
+            isCurrentlyResizing = false;
+            resizeHandle = null;
+            updateOutputHeight();
+            updateDisplay(false); // Do not jump scroll when adding
         }
 
         function moveSplitBox(x, y) {
@@ -1620,21 +1787,16 @@
 
         // Auto compute output height from split box ratio
         function updateOutputHeight() {
+            const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
             if (splitBoxes.length === 0) {
-                // No split boxes: use default 1:1 ratio
-                const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
                 document.getElementById('outputHeightInput').value = outputWidth;
                 return;
             }
-
-            // Use first split box ratio as reference
-            const firstBox = splitBoxes[0];
-            const boxRatio = firstBox.width / firstBox.height;
-            
-            const outputWidth = parseInt(document.getElementById('outputWidthInput').value);
-            const outputHeight = Math.round(outputWidth / boxRatio);
-            
-            document.getElementById('outputHeightInput').value = outputHeight;
+            // Reflect the box being edited (selected), else the most recent one.
+            const idx = (selectedBoxIndex != null && splitBoxes[selectedBoxIndex]) ? selectedBoxIndex : splitBoxes.length - 1;
+            const box = splitBoxes[idx];
+            const boxRatio = box.width / box.height;
+            document.getElementById('outputHeightInput').value = Math.round(outputWidth / boxRatio);
         }
 
         // When split box changes, auto update output height
@@ -1725,14 +1887,12 @@
         document.addEventListener('mouseup', function(e) {
             // If released outside canvas, still handle lock
             if (isCurrentlyResizing) {
-                console.log('Global mouse up, stop resize drag, lock split box');
                 isCurrentlyResizing = false;
                 isResizing = false;
                 isResizeLocked = true;
                 resizeHandle = null;
                 updateDisplay(false);
             } else if (isDragging) {
-                console.log('Global mouse up, stop dragging split box');
                 isDragging = false;
                 updateDisplay(false);
             }
@@ -1746,17 +1906,185 @@
                 // If dragging, stop drag
                 if (isDragging) {
                     isDragging = false;
-                    console.log('Click outside image, stop dragging split box');
                     updateDisplay(false); // Do not jump scroll when clicking outside
                 }
             }
         });
 
         // Debug
-        console.log('Page loaded, initializing...');
-        console.log('File input element:', document.getElementById('fileInput'));
-        console.log('Upload area element:', document.getElementById('uploadArea'));
-        console.log('Canvas container element:', document.getElementById('canvasContainer'));
+    </script>
+
+    <!-- Animated 3D tech background: constellation network + scrolling perspective grid. Fully self-contained, does not touch the app logic. -->
+    <script>
+    (function () {
+        const c = document.getElementById('bg3d');
+        if (!c || !c.getContext) return;
+        const ctx = c.getContext('2d');
+        let w, h, dpr;
+
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            w = c.width = Math.floor(window.innerWidth * dpr);
+            h = c.height = Math.floor(window.innerHeight * dpr);
+            c.style.width = window.innerWidth + 'px';
+            c.style.height = window.innerHeight + 'px';
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Floating particles for the constellation network (upper region)
+        const N = 66;
+        const pts = [];
+        for (let i = 0; i < N; i++) {
+            pts.push({
+                x: Math.random() * w,
+                y: Math.random() * h * 0.72,
+                vx: (Math.random() - 0.5) * 0.22 * dpr,
+                vy: (Math.random() - 0.5) * 0.22 * dpr
+            });
+        }
+
+        let t = 0;
+        function frame() {
+            t++;
+            ctx.clearRect(0, 0, w, h);
+
+            // ---- Scrolling 3D perspective grid (bottom) ----
+            const horizon = h * 0.60;
+            const vpx = w / 2;
+            const cols = 26;
+            // Radiating vertical lines from the vanishing point
+            for (let i = -cols; i <= cols; i++) {
+                const bx = vpx + (i / cols) * w * 1.35;
+                ctx.beginPath();
+                ctx.moveTo(vpx, horizon);
+                ctx.lineTo(bx, h);
+                ctx.strokeStyle = 'rgba(99, 102, 241, 0.10)';
+                ctx.lineWidth = 1 * dpr;
+                ctx.stroke();
+            }
+            // Horizontal lines scrolling toward the viewer (perspective easing)
+            const rows = 16;
+            const scroll = (t * 0.0022) % 1;
+            for (let i = 0; i < rows; i++) {
+                let f = (i + scroll) / rows;   // 0..1 from horizon to bottom
+                f = f * f;                     // ease -> denser near horizon
+                const yy = horizon + f * (h - horizon);
+                ctx.beginPath();
+                ctx.moveTo(0, yy);
+                ctx.lineTo(w, yy);
+                ctx.strokeStyle = 'rgba(124, 92, 246, ' + (0.16 * (0.35 + f * 0.65)) + ')';
+                ctx.lineWidth = 1 * dpr;
+                ctx.stroke();
+            }
+            // Soft glow line on the horizon
+            const grad = ctx.createLinearGradient(0, horizon - 20 * dpr, 0, horizon + 20 * dpr);
+            grad.addColorStop(0, 'rgba(99,102,241,0)');
+            grad.addColorStop(0.5, 'rgba(129,140,248,0.18)');
+            grad.addColorStop(1, 'rgba(99,102,241,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, horizon - 20 * dpr, w, 40 * dpr);
+
+            // ---- Constellation particle network (upper region) ----
+            for (const p of pts) {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > w) p.vx *= -1;
+                if (p.y < 0 || p.y > h * 0.72) p.vy *= -1;
+            }
+            const maxD = 150 * dpr;
+            for (let i = 0; i < N; i++) {
+                for (let j = i + 1; j < N; j++) {
+                    const a = pts[i], b = pts[j];
+                    const dx = a.x - b.x, dy = a.y - b.y;
+                    const d = Math.sqrt(dx * dx + dy * dy);
+                    if (d < maxD) {
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        ctx.lineTo(b.x, b.y);
+                        ctx.strokeStyle = 'rgba(139, 92, 246, ' + (0.18 * (1 - d / maxD)) + ')';
+                        ctx.lineWidth = 1 * dpr;
+                        ctx.stroke();
+                    }
+                }
+            }
+            for (const p of pts) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1.7 * dpr, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(99, 102, 241, 0.55)';
+                ctx.fill();
+            }
+
+            requestAnimationFrame(frame);
+        }
+        frame();
+    })();
+    </script>
+    <!-- Custom-styled dropdowns for the Ratio / Quality selects.
+         The native <select> stays in the DOM (hidden) so all existing logic keeps reading .value. -->
+    <script>
+    (function () {
+        function enhance(sel) {
+            const wrap = document.createElement('div');
+            wrap.className = 'cselect';
+            sel.parentNode.insertBefore(wrap, sel);
+            wrap.appendChild(sel);
+            sel.style.display = 'none';
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'cselect-btn';
+            const lbl = document.createElement('span');
+            lbl.className = 'cselect-lbl';
+            const caret = document.createElement('span');
+            caret.className = 'cselect-caret';
+            caret.textContent = '▾';
+            btn.appendChild(lbl);
+            btn.appendChild(caret);
+            wrap.appendChild(btn);
+
+            const menu = document.createElement('div');
+            menu.className = 'cselect-menu';
+            wrap.appendChild(menu);
+
+            function build() {
+                menu.innerHTML = '';
+                Array.from(sel.options).forEach((o, i) => {
+                    const it = document.createElement('div');
+                    it.className = 'cselect-opt' + (i === sel.selectedIndex ? ' sel' : '');
+                    it.textContent = o.textContent;
+                    it.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        if (sel.selectedIndex !== i) {
+                            sel.selectedIndex = i;
+                            sel.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                        sync();
+                        wrap.classList.remove('open');
+                    });
+                    menu.appendChild(it);
+                });
+            }
+            function sync() {
+                const cur = sel.options[sel.selectedIndex];
+                lbl.textContent = cur ? cur.textContent : '';
+                Array.from(menu.children).forEach((c, i) => c.classList.toggle('sel', i === sel.selectedIndex));
+            }
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const willOpen = !wrap.classList.contains('open');
+                document.querySelectorAll('.cselect.open').forEach(w => w.classList.remove('open'));
+                if (willOpen) { build(); sync(); wrap.classList.add('open'); }
+            });
+            document.addEventListener('mousedown', (e) => {
+                if (!wrap.contains(e.target)) wrap.classList.remove('open');
+            });
+            // Keep the custom label in sync if code changes the select programmatically.
+            sel.addEventListener('change', sync);
+            build();
+            sync();
+        }
+        document.querySelectorAll('.control-panel select').forEach(enhance);
+    })();
     </script>
 </body>
 </html>
